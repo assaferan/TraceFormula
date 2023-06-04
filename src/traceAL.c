@@ -599,7 +599,7 @@ time_t timeTraceAL(long upTo, long from)
 int
 main()
 {
-  GEN /* f, NK, k, */ N, al /* , upto, from */;
+  GEN /* f, NK, k, */ N, al, upto, from;
   long prec; // , rem;
   pari_init(10000000000,2);
   printf("N = "); N = gp_read_stream(stdin);
@@ -612,10 +612,10 @@ main()
   pari_printf("al = %Ps\n", al);
   // NK = mkvec2(N,k);
   // f = mftraceform(NK,0);
-  // printf("from = "); from = gp_read_stream(stdin);
-  // printf("upto = "); upto = gp_read_stream(stdin);
-  // time_t timing = timeTraceAL(gtos(upto), gtos(from));
-  // printf("took %ld seconds\n", timing);
+  printf("from = "); from = gp_read_stream(stdin);
+  printf("upto = "); upto = gp_read_stream(stdin);
+  time_t timing = timeTraceAL(gtos(upto), gtos(from));
+  printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
   return 0;
