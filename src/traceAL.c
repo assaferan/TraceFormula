@@ -441,6 +441,7 @@ long H12(long D)
 }
 
 // Returns 6 * Hurwitz(D)
+/*
 static ulong
 hclassno6u_i(ulong D, long D0, long F)
 {
@@ -448,6 +449,7 @@ hclassno6u_i(ulong D, long D0, long F)
   if (z) return z;
   return hclassno6u_2(D,D0,F);
 }
+*/
 
 // In what follows we assume N is prime, k = 2
 
@@ -456,7 +458,7 @@ traceAL(long N, long n)
 {
   const long nN = n*N;
   const long n4N = nN << 2;
-  const long n4 = n << 2;
+  // const long n4 = n << 2;
   // Cohen does something wiser - see if it works here
   long limt, tN;
   long ret;
@@ -468,8 +470,10 @@ traceAL(long N, long n)
   GEN div_nN = divisors(mkintn(1,nN));
   // pari_printf("div_nN = %Ps\n", div_nN);
   GEN div_n = divisors(mkintn(1,n));
+  GEN div_N = divisors(mkintn(1,N));
   long num_divs_nN = lg(div_nN);
   long num_divs_n = lg(div_n);
+  long num_divs_N = lg(div_N);
   long phi = gtos(eulerphi(mkintn(1,N)));
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
@@ -477,14 +481,23 @@ traceAL(long N, long n)
     long t2 = t*t, D = n4N - t2;
     // printf("t = %ld, D = %ld\n", t, D);
     // S1 += hclassno6u(D);
-    // printf("t = %ld, D = %ld, H12(D) = %ld\n", tN, D, H12(D));
-    S1 += H12(D);
-  }
+    // printf("t = %ld, D = %ld, ", tN, D);
+    for (long idx = 1; idx < num_divs_N; idx++) {
+       ulong u = gtos(gel(div_N, idx));
+       ulong u2 = u*u;
+       if (D % u2 == 0) {
+	 S1 += moebius(mkintn(1,u))*H12(D / u2);
+       }
+       // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
+    }
 
+  }
+  /*
   if (n4 % N == 0)
   {
     long quo = n4 / N;
-    for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
+    for (tN = -limt ; tN <= limt; tN++) */ /* t^2 < 4Nn */
+  /*
     {
       long t2 = tN*tN, D = quo - t2;
       // printf("t = %ld, D = %ld, H12(D) = %ld\n", tN, D, H12(D));
@@ -492,6 +505,7 @@ traceAL(long N, long n)
       S1 -= H12(D);
      }  
   }
+  */
   // printf("Sum of class numbers is: %ld\n", S1);
   long S2 = 0;
 
@@ -507,7 +521,7 @@ traceAL(long N, long n)
     }
   }
 
-  //  printf("Sum of divisors is: %ld\n", S2);
+  // printf("Sum of divisors is: %ld\n", S2);
   ret = -(S1 + 12*S2*phi / N) / 24;
 
   for (long idx = 1; idx < num_divs_n; idx++)
@@ -585,22 +599,23 @@ time_t timeTraceAL(long upTo, long from)
 int
 main()
 {
-  GEN f, NK, N, k, al, upto, from;
-  long prec, rem;
+  GEN /* f, NK, k, */ N, al /* , upto, from */;
+  long prec; // , rem;
   pari_init(10000000000,2);
   printf("N = "); N = gp_read_stream(stdin);
-  k = mkintn(1,2);
-  prec = gtos(divis_rem(N, 12, &rem));
+  // k = mkintn(1,2);
+  // prec = gtos(divis_rem(N, 12, &rem));
+  prec = 100;
   time_t start = time(NULL);
   al = traceALupto(gtos(N), prec);
   printf("single run took %ld seconds\n", time(NULL)-start);
   pari_printf("al = %Ps\n", al);
-  NK = mkvec2(N,k);
-  f = mftraceform(NK,0);
-  printf("from = "); from = gp_read_stream(stdin);
-  printf("upto = "); upto = gp_read_stream(stdin);
-  time_t timing = timeTraceAL(gtos(upto), gtos(from));
-  printf("took %ld seconds\n", timing);
+  // NK = mkvec2(N,k);
+  // f = mftraceform(NK,0);
+  // printf("from = "); from = gp_read_stream(stdin);
+  // printf("upto = "); upto = gp_read_stream(stdin);
+  // time_t timing = timeTraceAL(gtos(upto), gtos(from));
+  // printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
   return 0;

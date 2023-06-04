@@ -13,7 +13,7 @@
 #
 
 # change this TARGET to compile your own programs
-TARGET = traceAL traceALbatch
+TARGET = traceAL
 SHELL  = /bin/sh
 
 DBGFLAGS   = -g -Wall

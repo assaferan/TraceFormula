@@ -1,6 +1,6 @@
 data/traces_upto*
 traces_up_to*
-data/*
+data/*.m
 src/.magma-scan
 src/*-dyn
 src/*.o
