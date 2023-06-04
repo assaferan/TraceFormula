@@ -451,10 +451,21 @@ hclassno6u_i(ulong D, long D0, long F)
 }
 */
 
-// In what follows we assume N is prime, k = 2
+long polyGegenbauer(long k, long t, long m)
+{
+  GEN pol_one = mkpoln(1,gen_1);
+  GEN pol_quad = mkpoln(3,mkintn(1,m),mkintn(1,-t),gen_1);
+  GEN inv_pol = mkrfrac(pol_one, pol_quad);
+  // GEN inv_pol_ser = tayl(inv_pol, (k-2) + 1);
+  GEN inv_pol_ser = Ser0(inv_pol, -1, NULL, (k-2) + 1);
+  
+  return gtos(truecoeff(inv_pol_ser, k-2));
+}
+
+// In what follows we assume k = 2
 
 long
-traceAL(long N, long n)
+traceAL(long N, long n, long k)
 {
   const long nN = n*N;
   const long n4N = nN << 2;
@@ -486,26 +497,13 @@ traceAL(long N, long n)
        ulong u = gtos(gel(div_N, idx));
        ulong u2 = u*u;
        if (D % u2 == 0) {
-	 S1 += moebius(mkintn(1,u))*H12(D / u2);
+	 S1 += polyGegenbauer(k,t,n)*moebius(mkintn(1,u))*H12(D / u2);
        }
        // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
     }
 
   }
-  /*
-  if (n4 % N == 0)
-  {
-    long quo = n4 / N;
-    for (tN = -limt ; tN <= limt; tN++) */ /* t^2 < 4Nn */
-  /*
-    {
-      long t2 = tN*tN, D = quo - t2;
-      // printf("t = %ld, D = %ld, H12(D) = %ld\n", tN, D, H12(D));
-      //      S1 -= hclassno6u(D);
-      S1 -= H12(D);
-     }  
-  }
-  */
+  
   // printf("Sum of class numbers is: %ld\n", S1);
   long S2 = 0;
 
@@ -517,18 +515,21 @@ traceAL(long N, long n)
     ulong a = nN / d;
     if ((a+d) % N == 0)
     {
-      S2 += minuu(a,d);
+      // TODO : fix precision for large k
+      S2 += gtos(powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
     }
   }
 
   // printf("Sum of divisors is: %ld\n", S2);
   ret = -(S1 + 12*S2*phi / N) / 24;
 
-  for (long idx = 1; idx < num_divs_n; idx++)
-  {
-    ulong d = gtos(gel(div_n, idx));
-    if (ugcd(N,d) == 1)
-      ret +=  n / d;
+  if (k == 2) {
+    for (long idx = 1; idx < num_divs_n; idx++)
+      {
+	ulong d = gtos(gel(div_n, idx));
+	if (ugcd(N,d) == 1)
+	  ret +=  n / d;
+      }
   }
   return ret;
 }
@@ -540,7 +541,7 @@ GEN traceALupto(long N, long prec)
   gel(res, 1) = gen_0;
   for (long i = 2; i <= prec; i++)
   {
-    long trace = traceAL(N, i-1);
+    long trace = traceAL(N, i-1, 2);
     gel(res,i) = gen_0;
    
     if (trace > 0)
