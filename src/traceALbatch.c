@@ -441,6 +441,7 @@ long H12(long D)
 }
 
 // Returns 6 * Hurwitz(D)
+/*
 static ulong
 hclassno6u_i(ulong D, long D0, long F)
 {
@@ -448,6 +449,7 @@ hclassno6u_i(ulong D, long D0, long F)
   if (z) return z;
   return hclassno6u_2(D,D0,F);
 }
+*/
 
 // In what follows we assume N is prime, k = 2
 
