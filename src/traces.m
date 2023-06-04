@@ -135,7 +135,10 @@ function PhiAL(N, a, d)
   return EulerPhi(N) / N;
 end function;
 
-// This seems to work when N is prime, unless n eq N
+// Now this seems to work - tested for N <= 100, even k, 2<=k<=12 and 1 <= n <= 10, n = N
+// This formula follows Popa - On the Trace Formula for Hecke Operators on Congruence Subgroups, II
+// Theorem 4. 
+// (Also appears in Skoruppa-Zagier, but this way of stating the formula was easier to work with).
 function TraceFormulaGamma0AL(n, N, k)
   S1 := 0;
 //  max_abst := Floor(SquareRoot(4*N*n));
@@ -145,7 +148,7 @@ function TraceFormulaGamma0AL(n, N, k)
   for tN in [-max_abst..max_abst] do
     t := tN*N;
     for u in Divisors(N) do
-      if ((4*n-t^2) mod u^2 eq 0) then
+      if ((4*n*N-t^2) mod u^2 eq 0) then
 	S1 +:= P(k,t,N*n)*H((4*N*n-t^2) div u^2)*C(1,1,t,N*n)
 				    *MoebiusMu(u) / N^(k div 2-1);
       end if;
