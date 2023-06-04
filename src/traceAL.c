@@ -451,15 +451,30 @@ hclassno6u_i(ulong D, long D0, long F)
 }
 */
 
+GEN mksintn(long l, long x)
+{
+  GEN res = gen_0;
+   
+  if (x > 0)
+    res = gadd(res, mkintn(1,x));
+  else
+    res = gsub(res, mkintn(1,-x));
+
+  return res;
+}
+
 long polyGegenbauer(long k, long t, long m)
 {
   GEN pol_one = mkpoln(1,gen_1);
-  GEN pol_quad = mkpoln(3,mkintn(1,m),mkintn(1,-t),gen_1);
+  GEN pol_quad = mkpoln(3,mkintn(1,m),mksintn(1,-t),gen_1);
   GEN inv_pol = mkrfrac(pol_one, pol_quad);
   // GEN inv_pol_ser = tayl(inv_pol, (k-2) + 1);
-  GEN inv_pol_ser = Ser0(inv_pol, -1, NULL, (k-2) + 1);
-  
-  return gtos(truecoeff(inv_pol_ser, k-2));
+  GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), 10);
+  pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
+  pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
+  GEN ret = truecoeff(inv_pol_ser, k-2);
+  pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
+  return gtos(ret);
 }
 
 // In what follows we assume k = 2
@@ -475,7 +490,7 @@ traceAL(long N, long n, long k)
   long ret;
   long S1 = 0;
 
-  // printf("In traceAL, N = %ld, n = %ld\n", N, n);
+  printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
   limt = usqrt(n4N) / N;
   // printf("limt = %ld\n", limt);
   GEN div_nN = divisors(mkintn(1,nN));
@@ -486,25 +501,26 @@ traceAL(long N, long n, long k)
   long num_divs_n = lg(div_n);
   long num_divs_N = lg(div_N);
   long phi = gtos(eulerphi(mkintn(1,N)));
+  long denom = gtos(powgi(mkintn(1,N), mkintn(1,(k/2)-1)));
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
     long t = tN*N;
     long t2 = t*t, D = n4N - t2;
     // printf("t = %ld, D = %ld\n", t, D);
     // S1 += hclassno6u(D);
-    // printf("t = %ld, D = %ld, ", tN, D);
+    printf("t = %ld, D = %ld, ", t, D);
     for (long idx = 1; idx < num_divs_N; idx++) {
        ulong u = gtos(gel(div_N, idx));
        ulong u2 = u*u;
        if (D % u2 == 0) {
-	 S1 += polyGegenbauer(k,t,n)*moebius(mkintn(1,u))*H12(D / u2);
+	 S1 += polyGegenbauer(k,t,nN)*moebius(mkintn(1,u))*H12(D / u2) / denom;
        }
-       // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
+       printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
     }
 
   }
   
-  // printf("Sum of class numbers is: %ld\n", S1);
+  printf("Sum of class numbers is: %ld\n", S1);
   long S2 = 0;
 
   // printf("num_divs_nN = %ld\n", num_divs_nN);
@@ -520,8 +536,8 @@ traceAL(long N, long n, long k)
     }
   }
 
-  // printf("Sum of divisors is: %ld\n", S2);
-  ret = -(S1 + 12*S2*phi / N) / 24;
+  printf("Sum of divisors is: %ld\n", S2);
+  ret = -(S1 + 12*S2*phi / (N*denom)) / 24;
 
   if (k == 2) {
     for (long idx = 1; idx < num_divs_n; idx++)
@@ -534,14 +550,14 @@ traceAL(long N, long n, long k)
   return ret;
 }
 
-GEN traceALupto(long N, long prec)
+GEN traceALupto(long N, long k, long prec)
 {
   GEN res = cgetg(prec+1, t_VEC);
   // We add a 0 in the beginning to align with mfcoefs
   gel(res, 1) = gen_0;
   for (long i = 2; i <= prec; i++)
   {
-    long trace = traceAL(N, i-1, 2);
+    long trace = traceAL(N, i-1, k);
     gel(res,i) = gen_0;
    
     if (trace > 0)
@@ -579,7 +595,7 @@ time_t timeTraceAL(long upTo, long from)
     // printf("output directed to file %s\n", filename);
     prec = maxuu((p+11) / 12, 1000);
     // printf("p = %ld, prec = %ld\n", p, prec);
-    res = traceALupto(p, prec+1);
+    res = traceALupto(p, gtos(k), prec+1);
     NK = mkvec2(gel(p_list, idx),k);
     f = mftraceform(NK,0);
     coefs = mfcoefs(f, prec+1, 1);
@@ -600,15 +616,17 @@ time_t timeTraceAL(long upTo, long from)
 int
 main()
 {
-  GEN /* f, NK, k, */ N, al, upto, from;
-  long prec; // , rem;
+  GEN /* f, NK,*/ k, N, al, upto, from, prec;
+  // long prec; // , rem;
   pari_init(10000000000,2);
   printf("N = "); N = gp_read_stream(stdin);
+  printf("k = "); k = gp_read_stream(stdin);
+  printf("prec = "); prec = gp_read_stream(stdin);
   // k = mkintn(1,2);
   // prec = gtos(divis_rem(N, 12, &rem));
-  prec = 100;
+  // prec = 100;
   time_t start = time(NULL);
-  al = traceALupto(gtos(N), prec);
+  al = traceALupto(gtos(N), gtos(k), gtos(prec));
   printf("single run took %ld seconds\n", time(NULL)-start);
   pari_printf("al = %Ps\n", al);
   // NK = mkvec2(N,k);
