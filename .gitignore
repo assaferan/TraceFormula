@@ -1,1 +1,4 @@
 data/traces_upto*
+traces_up_to*
+data/*
+src/.magma-scan
