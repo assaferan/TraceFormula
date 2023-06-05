@@ -599,18 +599,19 @@ time_t timeTraceAL(long upTo, long from, long k)
 int
 main(int argc, char* argv[])
 {
-  if (argc != 3)
+  if (argc != 4)
     {
       printf("Incorrect number of arguments.\n");
-      printf("Usage: %s <from> <to>\n", argv[0]);
+      printf("Usage: %s <from> <to> <weight>\n", argv[0]);
       printf("computes traces for primes between from and to.\n");
       return -1;
     }
   long from = atoi(argv[1]);
   long upto = atoi(argv[2]);
+  long k = atoi(argv[3]);
 
   pari_init(10000000000,2);
-  timeTraceAL(upto, from);
+  timeTraceAL(upto, from, k);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
