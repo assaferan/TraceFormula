@@ -440,17 +440,6 @@ long H12(long D)
   return (is_sq ? -6*u : 0); 
 }
 
-// Returns 6 * Hurwitz(D)
-/*
-static ulong
-hclassno6u_i(ulong D, long D0, long F)
-{
-  ulong z = (ulong)cache_get(cache_H, D);
-  if (z) return z;
-  return hclassno6u_2(D,D0,F);
-}
-*/
-
 GEN mksintn(long l, long x)
 {
   GEN res = gen_0;
@@ -468,29 +457,28 @@ GEN polyGegenbauer(long k, long t, long m)
   GEN pol_one = mkpoln(1,gen_1);
   GEN pol_quad = mkpoln(3,mkintn(1,m),mksintn(1,-t),gen_1);
   GEN inv_pol = mkrfrac(pol_one, pol_quad);
-  // GEN inv_pol_ser = tayl(inv_pol, (k-2) + 1);
-  GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), 10);
-  pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
-  pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
+  GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), (k-2) + 1);
+  // pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
+  // pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
   GEN ret = truecoeff(inv_pol_ser, k-2);
-  pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
+  // pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
   return ret;
 }
 
-// In what follows we assume k = 2
+// In what follows we assume k >=2 is even
 
 GEN
 traceAL(long N, long n, long k)
 {
   const long nN = n*N;
   const long n4N = nN << 2;
-  // const long n4 = n << 2;
+
   // Cohen does something wiser - see if it works here
   long limt, tN;
   GEN ret;
   GEN S1 = gen_0;
 
-  printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
+  // printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
   limt = usqrt(n4N) / N;
   // printf("limt = %ld\n", limt);
   GEN div_nN = divisors(mkintn(1,nN));
@@ -506,25 +494,22 @@ traceAL(long N, long n, long k)
   {
     long t = tN*N;
     long t2 = t*t, D = n4N - t2;
-    // printf("t = %ld, D = %ld\n", t, D);
-    // S1 += hclassno6u(D);
-    printf("t = %ld, D = %ld, ", t, D);
+    // printf("t = %ld, D = %ld, ", t, D);
     GEN inner_sum_t = gen_0;
     for (long idx = 1; idx < num_divs_N; idx++) {
        ulong u = gtos(gel(div_N, idx));
        ulong u2 = u*u;
        if (D % u2 == 0) {
-	 // S1 += polyGegenbauer(k,t,nN)*moebius(mkintn(1,u))*H12(D / u2) / denom;
 	 inner_sum_t = gaddgs(inner_sum_t, moebius(mkintn(1,u))*H12(D / u2));
        }
-       printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
+       // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
     S1 = gadd(S1, inner_sum_t);
   }
   
-  pari_printf("Sum of class numbers is: %Ps\n", S1);
+  // pari_printf("Sum of class numbers is: %Ps\n", S1);
   GEN S2 = gen_0;
 
   // printf("num_divs_nN = %ld\n", num_divs_nN);
@@ -535,18 +520,14 @@ traceAL(long N, long n, long k)
     ulong a = nN / d;
     if ((a+d) % N == 0)
     {
-      // TODO : fix precision for large k
-      // S2 += gtos(powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
       S2 = gadd(S2, powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
     }
   }
 
-  pari_printf("Sum of divisors is: %Ps\n", S2);
+  // pari_printf("Sum of divisors is: %Ps\n", S2);
   S2 = gmulgs(S2, 12*phi);
   S2 = gdivgs(S2, N);
   S2 = gdiv(S2, denom);
-  
-  // ret = -(S1 + 12*S2*phi / (N*denom)) / 24;
 
   ret = gadd(S1, S2);
   ret = gsub(gen_0, ret);
@@ -557,7 +538,6 @@ traceAL(long N, long n, long k)
       {
 	GEN d = gel(div_n, idx);
 	if (ugcd(N,gtos(d)) == 1)
-	  // ret +=  n / d;
 	  ret = gadd(ret, gdiv(mkintn(1,n),d));
       }
   }
@@ -570,50 +550,36 @@ GEN traceALupto(long N, long k, long prec)
   // We add a 0 in the beginning to align with mfcoefs
   gel(res, 1) = gen_0;
   for (long i = 2; i <= prec; i++)
-  {
     gel(res, i) = traceAL(N, i-1, k);
-    // GEN trace = traceAL(N, i-1, k);
-    /*
-    gel(res,i) = gen_0;
-   
-    if (trace > 0)
-      gel(res,i) = gadd(gel(res,i), mkintn(1,trace));
-    else
-      gel(res,i) = gsub(gel(res,i), mkintn(1,-trace));
-    */
-     
-  }
+
   return res;
 }
 
-time_t timeTraceAL(long upTo, long from)
+time_t timeTraceAL(long upTo, long from, long k)
 {
   time_t start = time(NULL);
-  long p, prec;
-  GEN k = mkintn(1,2);
+  long prec;
   GEN NK;
   GEN res, f, coefs;
-  GEN p_list = primes0(mkvec2(mkintn(1,from), mkintn(1,upTo)));
-  long num_primes = lg(p_list);
-  // char* base_filename = "data/traces_";
-  // char* suffix = ".m";
-  // char p_str[10]; // we're working with up to 5 digits, so 10 should be enough
+  // GEN p_list = primes0(mkvec2(mkintn(1,from), mkintn(1,upTo)));
+  // long num_primes = lg(p_list);
   char filename[80];
   FILE* outfile;
   
-  printf("In timeTraceAL, with upTo = %ld\n", upTo);
-  printf("num_primes = %lu\n", num_primes);
-  pari_printf("last prime = %Ps\n", gel(p_list, num_primes-1));
-  for (long idx = 1; idx < num_primes-1; idx++)
+  // printf("In timeTraceAL, with upTo = %ld\n", upTo);
+  // printf("num_primes = %lu\n", num_primes);
+  // pari_printf("last prime = %Ps\n", gel(p_list, num_primes-1));
+  // for (long idx = 1; idx < num_primes-1; idx++)
+  for (long N = from; N < upTo; N++) 
   {
-    p = gtos(gel(p_list, idx));
+    // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
-    sprintf(filename, "data/traces_%ld.m", p);
+    sprintf(filename, "data/traces_%ld_%ld.m", k, N);
     // printf("output directed to file %s\n", filename);
-    prec = maxuu((p+11) / 12, 1000);
+    prec = maxuu((k*N+11) / 12, 1000);
     // printf("p = %ld, prec = %ld\n", p, prec);
-    res = traceALupto(p, gtos(k), prec+1);
-    NK = mkvec2(gel(p_list, idx),k);
+    res = traceALupto(N, k, prec+1);
+    NK = mkvec2(mkintn(1,N),mkintn(1,k));
     f = mftraceform(NK,0);
     coefs = mfcoefs(f, prec+1, 1);
     outfile = fopen(filename, "w");
@@ -622,7 +588,7 @@ time_t timeTraceAL(long upTo, long from)
 	     filename);
     else
       pari_fprintf(outfile, "traces_%d := %Ps;\ntracesAL_%d := %Ps;\n",
-		   p, coefs, p, res);
+		   N, coefs, N, res);
       //pari_printf("traces := %Ps;\ntracesAL := %Ps;\n", coefs, res);
     fclose(outfile);
   }
@@ -650,7 +616,7 @@ main()
   // f = mftraceform(NK,0);
   printf("from = "); from = gp_read_stream(stdin);
   printf("upto = "); upto = gp_read_stream(stdin);
-  time_t timing = timeTraceAL(gtos(upto), gtos(from));
+  time_t timing = timeTraceAL(gtos(upto), gtos(from), gtos(k));
   printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
