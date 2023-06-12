@@ -1,6 +1,6 @@
 bin_PROGRAMS = traceAL_sta traceALbatch_sta traceAL_dyn traceALbatch_dyn
 
-ALL_CFLAGS = -I. -I${PARI_PATH}/include -Wall -Werror
+ALL_CFLAGS = -I. -I${PARI_PATH}/include -Wall -Werror -ffp-contract=off -fno-strict-aliasing
 
 OPT_CFLAGS = -O3 -DNDEBUG -msse3 -mavx
 # DBG_CFLAGS = -g -DDEBUG -fsanitize=address
@@ -22,7 +22,7 @@ OPT_CFLAGS += $(ALL_CFLAGS)
 # DBG_FULL_CFLAGS = -DDEBUG_LEVEL_FULL
 # DBG_FULL_CFLAGS += ${DBG_CFLAGS}
 
-ALLLDFLAGS = -L${PARI_PATH}/lib -lpari
+ALLLDFLAGS = -L${PARI_PATH}/lib -lpari -ffp-contract=off -fno-strict-aliasing    -Wl,-search_paths_first 
 
 OPTLDFLAGS = ${ALLLDFLAGS}
 OPTLDFLAGS += -O3
@@ -30,8 +30,9 @@ OPTLDFLAGS += -O3
 # DBG_LD_FLAGS = ${ALL_LDFLAGS}
 # DBG_LD_FLAGS += -fsanitize=leak
 
-MODLDFLAGS = -bundle -undefined dynamic_lookup
 DLCFLAGS   = -fPIC
+# MODLDFLAGS = -bundle -undefined dynamic_lookup ${DLCFLAGS}
+MODLDFLAGS = ${DLCFLAGS}
 
 traceAL_sta_SOURCES = traceAL.c
 traceALbatch_sta_SOURCES = traceALbatch.c

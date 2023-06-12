@@ -603,7 +603,7 @@ main(int argc, char* argv[])
     {
       printf("Incorrect number of arguments.\n");
       printf("Usage: %s <from> <to> <weight>\n", argv[0]);
-      printf("computes traces for primes between from and to.\n");
+      printf("computes traces for levels between from and to.\n");
       return -1;
     }
   long from = atoi(argv[1]);
