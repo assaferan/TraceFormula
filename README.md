@@ -6,13 +6,14 @@
  
  ## Installation
  ```
- > cd src
- > make
+ > ./autogen.sh
+ > ./configure
+ > ./make
  ```
  
  ## Running
  ```
- > ./src/traceALbatch-dyn <from> <to> <k>
+ > ./src/traceALbatch_dyn <from> <to> <k>
  ```
  
  Creates files ```./data/traces_<k>_<N>.m``` for N in the range ```[<from>, <to>)```.
