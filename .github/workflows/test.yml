@@ -16,7 +16,7 @@ jobs:
       - id: set-matrix
         run: |
           matrix=$((
-            echo '{ "os" : ["ubuntu-latest", "macos-10.15"],
+            echo '{ "os" : ["ubuntu-latest", "macos-latest"],
             "target" : ['
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
             # echo " ]}"
