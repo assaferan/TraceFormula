@@ -1,10 +1,17 @@
+// SetDebugOnError(true);
+// SetVerbose("ModularSymbols", 3);
+
 procedure testPariVSMS(N,k,n)
     cmd := Sprintf("./src/traceALbatch_sta %o %o %o", N, N+1, k);
     System(cmd);
     fname := Sprintf("./data/traces_%o_%o.m", k, N);
     r := Read(fname);
-    return_cmd := Sprintf("return traces_%o, tracesAL_%o;", N, N);
-    traces_full, traces_AL := eval(r cat return_cmd);
+    al_start := Index(r, "tracesAL");
+    r := r[al_start..#r];
+    start := Index(r, "[") + 1;
+    fin := Index(r, "]") - 1;
+    r := r[start..fin];
+    traces_AL := [StringToInteger(x) : x in Split(r, ",")];
     C := CuspidalSubspace(ModularSymbols(N,k,1));
     al := AtkinLehner(C,N);
     T := HeckeOperator(C,n);
