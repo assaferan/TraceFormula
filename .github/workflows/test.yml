@@ -150,7 +150,8 @@ jobs:
       - name: Create dummy network device
         shell: bash
         run: |
-          sudo ip link add dumdum type dummy
+          # sudo ip link add dumdum type dummy
+          sudo ifconfig lo0 alias dumdum
           sudo ifconfig dumdum hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           echo | ./magma/magma
 
