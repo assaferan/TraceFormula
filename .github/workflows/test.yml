@@ -144,7 +144,7 @@ jobs:
           
       - name: Install dependencies
         run: |
-            sudo rm '/usr/local/bin/2to3'
+            sudo rm -f '/usr/local/bin/2to3'
             ${{ matrix.pkg_man }} update
             ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
       
