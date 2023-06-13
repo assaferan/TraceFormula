@@ -145,7 +145,7 @@ jobs:
         if: steps.magmacache.outputs.cache-hit != 'true'
         run: |
           # wget "$MAGMA_URL" -O magma.tar.gz --quiet
-          wget ${{ ${{ matrix.magma_url }} }} -O magma.tar.gz --quiet
+          wget "$ ${{ matrix.magma_url }} " -O magma.tar.gz --quiet
           tar xf magma.tar.gz
           
       - name: Install dependencies
