@@ -104,7 +104,7 @@ end function;
 
 // Gegenbauer polynomials
 function P(k, t, m)
-  R<x> := PowerSeriesRing(Rationals());
+  R<x> := PowerSeriesRing(Rationals(), k-1);
   return Coefficient((1 - t*x+m*x^2)^(-1), k-2);
 end function;
 
