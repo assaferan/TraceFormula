@@ -21,9 +21,9 @@ jobs:
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
             # echo " ]}"
             echo " ],"
-            echo '"include" : [{"pkg_man" : "brew", "os": "macos-10.15"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
+            echo '"include" : [{"pkg_man" : "brew", "os": "macos-latest"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
             echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin libpari-dev", "os": "ubuntu-latest"},'
-            echo '{"add_pkgs": "mpfr gmp pari", "os": "macos-10.15" } ]}'
+            echo '{"add_pkgs": "mpfr gmp pari iproute2mac", "os": "macos-latest" } ]}'
           ) | jq -c .)
           echo $matrix
           echo $matrix | jq .
