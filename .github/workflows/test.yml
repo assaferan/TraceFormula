@@ -7,7 +7,6 @@ on:
   pull_request_target:
 
 jobs:
-  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
