@@ -109,7 +109,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run tests
-    needs: [has_access, matrix]
+    needs: [has_access, build_matrix]
     if: needs.has_access.outputs.has_access == 'true'
 
     strategy:
