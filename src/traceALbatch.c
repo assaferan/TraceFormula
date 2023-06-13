@@ -558,13 +558,13 @@ time_t timeTraceAL(long upTo, long from)
   // printf("In timeTraceAL, with upTo = %ld\n", upTo);
   // printf("num_primes = %lu\n", num_primes);
   // pari_printf("last prime = %Ps\n", gel(p_list, num_primes-1));
-  for (long idx = 1; idx < num_primes-1; idx++)
+  for (long idx = 1; idx < num_primes; idx++)
   {
     p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     sprintf(filename, "data/traces_%ld.m", p);
     // printf("output directed to file %s\n", filename);
-    prec = maxuu((p+11) / 12, 1000);
+    prec = maxuu(2*(p+11) / 12, 1000);
     // printf("p = %ld, prec = %ld\n", p, prec);
     res = traceALupto(p, prec+1);
     NK = mkvec2(gel(p_list, idx),k);

@@ -1,7 +1,7 @@
 procedure testPariVSMS(N,n)
     cmd := Sprintf("./src/traceALbatch_sta %o %o", N, N+1);
     System(cmd);
-    fname := Sprintf("./data/traces_2_%o.m", N);
+    fname := Sprintf("./data/traces_%o.m", N);
     r := Read(fname);
     return_cmd := Sprintf("return traces_%o, tracesAL_%o;", N, N);
     traces_full, traces_AL := eval(r cat return_cmd);
