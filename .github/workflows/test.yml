@@ -156,7 +156,11 @@ jobs:
         run: |
             ${{ matrix.pkg_man }} update
             ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
-            
+      
+      - name: Check pari installation location
+        run: |
+             dpkg -L pari-gp
+      
       - name: Build 
         run: |
              cd TraceFormula
