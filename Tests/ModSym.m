@@ -6,7 +6,6 @@ procedure testPariVSMS(N,k,n)
     return_cmd := Sprintf("return traces_%o, tracesAL_%o;", N, N);
     traces_full, traces_AL := eval(r cat return_cmd);
     C := CuspidalSubspace(ModularSymbols(N,k,1));
-    n := Random([1..1000]);
     al := AtkinLehner(C,N);
     T := HeckeOperator(C,n);
     assert traces_AL[n+1] eq Trace(al*T);
