@@ -8,6 +8,7 @@ src/.deps/
 src/*~
 src/*_dyn
 src/*_sta
+src/Makefile
 aclocal.m4
 Makefile.in
 autom4te.cache
