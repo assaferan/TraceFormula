@@ -610,7 +610,7 @@ main(int argc, char* argv[])
   long upto = atoi(argv[2]);
   long k = atoi(argv[3]);
 
-  pari_init(10000000000,2);
+  pari_init(5000000000,2);
   timeTraceAL(upto, from, k);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
