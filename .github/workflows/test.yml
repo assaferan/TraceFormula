@@ -19,11 +19,11 @@ jobs:
             echo '{ "os" : ["ubuntu-latest", "macos-10.15"],
             "target" : ['
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
-            echo " ]}"
-            # echo " ],"
-            # echo '"include" : [{"pkg_man" : "brew", "os": "macos-10.15"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
-            # echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin pari-gp", "os": "ubuntu-latest"},'
-            # echo '{"add_pkgs": "mpfr gmp pari", "os": "macos-10.15" }]'
+            # echo " ]}"
+            echo " ],"
+            echo '"include" : [{"pkg_man" : "brew", "os": "macos-10.15"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
+            echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin pari-gp", "os": "ubuntu-latest"},'
+            echo '{"add_pkgs": "mpfr gmp pari", "os": "macos-10.15" } ]}'
           ) | jq -c .)
           echo $matrix
           echo $matrix | jq .
@@ -39,7 +39,7 @@ jobs:
 
       - name: Check matrix definition
         run: |
-          matrix='${{needs.matrix.outputs.matrix}}'
+          matrix='${{needs.build_matrix.outputs.matrix}}'
           echo $matrix
           echo $matrix | jq .
           echo $matrix | json2yaml
@@ -89,7 +89,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.matrix.outputs.matrix)}}
+      matrix: ${{fromJson(needs.build_matrix.outputs.matrix)}}
       
     steps:
       - name: Check user permission
