@@ -441,6 +441,7 @@ long H12(long D)
 }
 
 // Returns 6 * Hurwitz(D)
+/*
 static ulong
 hclassno6u_i(ulong D, long D0, long F)
 {
@@ -448,6 +449,7 @@ hclassno6u_i(ulong D, long D0, long F)
   if (z) return z;
   return hclassno6u_2(D,D0,F);
 }
+*/
 
 // In what follows we assume N is prime, k = 2
 
@@ -595,7 +597,7 @@ main(int argc, char* argv[])
   long from = atoi(argv[1]);
   long upto = atoi(argv[2]);
 
-  pari_init(10000000000,2);
+  pari_init(5000000000,2);
   timeTraceAL(upto, from);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
