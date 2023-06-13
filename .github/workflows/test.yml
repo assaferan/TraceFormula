@@ -60,6 +60,19 @@ jobs:
         if: "${{ env.MAGMA_URL != '' }}"
         run: |
           echo "has_access=true" >> $GITHUB_OUTPUT
+          
+  has_access_macos:
+    runs-on: macos-latest
+    outputs:
+      has_access_macos: ${{ steps.my-key.outputs.has_access_macos }}
+
+    steps:
+      - id: my-key
+        env:
+          MAGMA_URL_MACOS: ${{ secrets.MAGMA_URL_MACOS }}
+        if: "${{ env.MAGMA_URL_MACOS != '' }}"
+        run: |
+          echo "has_access_macos=true" >> $GITHUB_OUTPUT
 
   check-has_access:
     runs-on: ubuntu-latest
@@ -69,6 +82,13 @@ jobs:
         run: |
           echo ${{needs.has_access.outputs.has_access}}
 
+  check-has_access_macos:
+    runs-on: macos-latest
+    needs: has_access_macos
+    steps:
+      - name: Check has_access_macos definition
+        run: |
+          echo ${{needs.has_access_macos.outputs.has_access_macos}}
 
 
   printjob:
@@ -88,8 +108,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     name: Run tests
-    needs: [has_access, build_matrix]
-    if: needs.has_access.outputs.has_access == 'true'
+    needs: [has_access, has_access_macos, build_matrix]
+    if: (needs.has_access.outputs.has_access == 'true') and (needs.has_access_macos.outputs.has_access_macos == 'true')
 
     strategy:
       fail-fast: false
@@ -144,8 +164,7 @@ jobs:
         shell: bash
         if: steps.magmacache.outputs.cache-hit != 'true'
         run: |
-          # wget "$MAGMA_URL" -O magma.tar.gz --quiet
-          wget "$ ${{ matrix.magma_url }} " -O magma.tar.gz --quiet
+          wget "$${{ matrix.magma_url }}" -O magma.tar.gz --quiet
           tar xf magma.tar.gz
           
       - name: Install dependencies
