@@ -141,7 +141,12 @@ jobs:
         run: |
           wget "$MAGMA_URL" -O magma.tar.gz --quiet
           tar xf magma.tar.gz
-
+          
+      - name: Install dependencies
+        run: |
+            ${{ matrix.pkg_man }} update
+            ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
+      
       - name: Create dummy network device
         shell: bash
         run: |
@@ -149,11 +154,6 @@ jobs:
           sudo ifconfig dumdum hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           echo | ./magma/magma
 
-      - name: Install dependencies
-        run: |
-            ${{ matrix.pkg_man }} update
-            ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
-      
       - name: Build 
         run: |
              ./autogen.sh
