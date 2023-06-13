@@ -43,11 +43,9 @@ jobs:
              ./configure
              make
              
-      - name: test 
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - id: set-matrix
         run: |
-          
           matrix=$((
             echo '{ "target" : ['
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
