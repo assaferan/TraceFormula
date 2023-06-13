@@ -23,7 +23,7 @@ jobs:
             echo " ],"
             echo '"include" : [{"pkg_man" : "brew", "os": "macos-latest"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
             echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin libpari-dev", "os": "ubuntu-latest"},'
-            echo '{"add_pkgs": "mpfr gmp pari iproute2mac", "os": "macos-latest" } ]}'
+            echo '{"add_pkgs": "mpfr gmp pari python@3.11 iproute2mac", "os": "macos-latest" } ]}'
           ) | jq -c .)
           echo $matrix
           echo $matrix | jq .
@@ -144,7 +144,6 @@ jobs:
           
       - name: Install dependencies
         run: |
-            sudo rm -f '/usr/local/bin/2to3'
             ${{ matrix.pkg_man }} update
             ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
       
