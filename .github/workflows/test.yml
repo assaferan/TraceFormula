@@ -7,9 +7,22 @@ on:
   pull_request_target:
 
 jobs:
-
-  matrix:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-10.15 ]
+        include:
+          - pkg_man: brew
+            os: macos-10.15
+          - pkg_man: sudo apt-get
+            os: ubuntu-latest
+          - add_pkgs: libgmp-dev libmpfr-dev libtool-bin
+            os: ubuntu-latest
+          - add_pkgs: mpfr gmp
+            os: macos-10.15
+        
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
