@@ -114,15 +114,12 @@ jobs:
       - name: Checkout for a push event
         uses: actions/checkout@v3
         if: ${{ github.event_name == 'push' }}
-        with:
-          path: TraceFormula
 
       - name: Checkout for a PR event
         uses: actions/checkout@v3
         if: ${{ github.event_name == 'pull_request_target' }}
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          path: TraceFormula
 
       - name: Cache magma
         uses: actions/cache@v3
@@ -159,7 +156,6 @@ jobs:
       
       - name: Build 
         run: |
-             cd TraceFormula
              ./autogen.sh
              ./configure
              make
