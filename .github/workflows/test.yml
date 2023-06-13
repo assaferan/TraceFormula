@@ -7,19 +7,23 @@ on:
   pull_request_target:
 
 jobs:
-
-  matrix:
+  build_matrix:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
+    steps:       
       - uses: actions/checkout@v3
       - id: set-matrix
         run: |
           matrix=$((
-            echo '{ "target" : ['
-            ls -1 tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
-            echo " ]}"
+            echo '{ "os" : ["ubuntu-latest", "macos-latest"],
+            "target" : ['
+            ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
+            # echo " ]}"
+            echo " ],"
+            echo '"include" : [{"pkg_man" : "brew", "os": "macos-latest"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
+            echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin libpari-dev", "os": "ubuntu-latest"},'
+            echo '{"add_pkgs": "mpfr gmp pari iproute2mac", "os": "macos-latest" } ]}'
           ) | jq -c .)
           echo $matrix
           echo $matrix | jq .
@@ -27,7 +31,7 @@ jobs:
 
   check-matrix:
     runs-on: ubuntu-latest
-    needs: matrix
+    needs: build_matrix
     steps:
       - name: Install json2yaml
         run: |
@@ -35,7 +39,7 @@ jobs:
 
       - name: Check matrix definition
         run: |
-          matrix='${{needs.matrix.outputs.matrix}}'
+          matrix='${{needs.build_matrix.outputs.matrix}}'
           echo $matrix
           echo $matrix | jq .
           echo $matrix | json2yaml
@@ -77,15 +81,16 @@ jobs:
 
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    
     name: Run tests
-    needs: [has_access, matrix]
+    needs: [has_access, build_matrix]
     if: needs.has_access.outputs.has_access == 'true'
 
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.matrix.outputs.matrix)}}
-
+      matrix: ${{fromJson(needs.build_matrix.outputs.matrix)}}
+      
     steps:
       - name: Check user permission
         id: check
@@ -136,7 +141,12 @@ jobs:
         run: |
           wget "$MAGMA_URL" -O magma.tar.gz --quiet
           tar xf magma.tar.gz
-
+          
+      - name: Install dependencies
+        run: |
+            ${{ matrix.pkg_man }} update
+            ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
+      
       - name: Create dummy network device
         shell: bash
         run: |
@@ -144,7 +154,14 @@ jobs:
           sudo ifconfig dumdum hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           echo | ./magma/magma
 
+      - name: Build 
+        run: |
+             ./autogen.sh
+             ./configure
+             make
+             
       - name: Run tests
         shell: bash
         run: |
+          mkdir -p data
           ./magma/magma -b target:=${{matrix.target}} exitsignal:="" run_tests.m
