@@ -22,7 +22,7 @@ jobs:
             # echo " ]}"
             echo " ],"
             echo '"include" : [{"pkg_man" : "brew", "os": "macos-10.15"}, {"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
-            echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin pari-gp", "os": "ubuntu-latest"},'
+            echo '{"add_pkgs": "libgmp-dev libmpfr-dev libtool-bin pari-gp2c", "os": "ubuntu-latest"},'
             echo '{"add_pkgs": "mpfr gmp pari", "os": "macos-10.15" } ]}'
           ) | jq -c .)
           echo $matrix
@@ -159,7 +159,7 @@ jobs:
       
       - name: Check pari installation location
         run: |
-             dpkg -L pari-gp
+             dpkg -L pari-gp2c
       
       - name: Build 
         run: |
