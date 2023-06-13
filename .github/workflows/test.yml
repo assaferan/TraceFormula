@@ -109,7 +109,9 @@ jobs:
     
     name: Run tests
     needs: [has_access, has_access_macos, build_matrix]
-    if: (needs.has_access.outputs.has_access == 'true') and (needs.has_access_macos.outputs.has_access_macos == 'true')
+    if: 
+      needs.has_access.outputs.has_access == 'true'
+      needs.has_access_macos.outputs.has_access_macos == 'true'
 
     strategy:
       fail-fast: false
