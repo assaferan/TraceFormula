@@ -13,9 +13,28 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            path: TraceFormula
+
+      - name: Install dependencies
+        run: |
+            ${{ matrix.pkg_man }} update
+            ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
+            
+      - name: build
+        run: |
+             cd TraceFormula
+             ./autogen.sh
+             ./configure
+             make
+             
+      - name: test 
+        uses: actions/checkout@v3
       - id: set-matrix
         run: |
+          
           matrix=$((
             echo '{ "target" : ['
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
