@@ -1,20 +1,14 @@
 # TraceFormula
- Efficient computation of trace formula on Kohnen's plus-space of classical modular forms S_k(N)^+
+ Efficient computation of traceforms vis trace formula on Atkin-Lehner spaces
  
- ## Requirements
- Pari/GP
+ Relies on the formula first described in [SZ], following the version appearing in [P].
+ Using PARI/GP, as well as some of the code there based on Henri Cohen's algorithm for trace forms on the whole space and its implementation.
+ Specifically using the original code for caching class number computations.
  
- ## Installation
- ```
- > ./autogen.sh
- > ./configure
- > ./make
- ```
+ At the moment the main branch only deals with weight 2 and prime level.
+ The composite_level branch deals with any level and any weight.
+ Both only compute traces on the Kohnen subspace (the Atkin-Lehner operator W_N where N is the level)
  
- ## Running
- ```
- > ./src/traceALbatch_dyn <from> <to> <k>
- ```
+ [P] Popa, Alexandru A., On the trace formula for Hecke operators on congruence subgroups, II. Res. Math. Sci. 5 (2018), no. 1, Paper No. 3, 24 pp.
  
- Creates files ```./data/traces_<k>_<N>.m``` for N in the range ```[<from>, <to>)```.
- Each files contains a two lists of traces - one of the operators T_n and one of the operators T_n * W_N for n up to the Sturm bound, or up to 1000, if the Sturm bound is lower, on the space S_k(N).
+ [SZ] Skoruppa, Nils-Peter; Zagier, Don, Jacobi forms and a certain space of modular forms. Invent. Math. 94 (1988), no. 1, 113–146. 
