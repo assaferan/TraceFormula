@@ -25,6 +25,6 @@ for batch in batches:
     	  fnames = glob("data/traces_*")
     	  covered = {int(fname.split('_')[-1].split('.')[0]) for fname in fnames}
     	  remain_tiny = sorted([x for x in primes_tiny if x not in covered])
-    	  print len(primes_tiny) - len(remain_tiny), "/", len(primes_tiny)
+    	  print(len(primes_tiny) - len(remain_tiny), "/", len(primes_tiny))
     	  sleep(10)
     print "Finished up to ", N_batch
