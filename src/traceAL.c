@@ -167,7 +167,7 @@ constcoredisc(long lim)
     if (N > cacheb)
       {
 	// set_avma(av2);
-	avma = av2
+	avma = av2;
 	cachea = N;
       }
       CACHE = update_factor_cache(N, lim, &cacheb);
