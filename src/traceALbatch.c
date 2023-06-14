@@ -573,6 +573,7 @@ time_t timeTraceAL(long upTo, long from)
     sprintf(filename, "data/traces_%ld.m", p);
     // printf("output directed to file %s\n", filename);
     prec = maxuu((p+11) / 6, 1000);
+    prec = maxuu(prec, 30*sqrt(p));
     // printf("p = %ld, prec = %ld\n", p, prec);
     res = traceALupto(p, prec+1);
     NK = mkvec2(gel(p_list, idx),k);
