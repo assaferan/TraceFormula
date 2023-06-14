@@ -10,4 +10,5 @@
  Both only compute traces on the Kohnen subspace (the Atkin-Lehner operator W_N where N is the level)
  
  [P] Popa, Alexandru A., On the trace formula for Hecke operators on congruence subgroups, II. Res. Math. Sci. 5 (2018), no. 1, Paper No. 3, 24 pp.
+ 
  [SZ] Skoruppa, Nils-Peter; Zagier, Don, Jacobi forms and a certain space of modular forms. Invent. Math. 94 (1988), no. 1, 113–146. 
