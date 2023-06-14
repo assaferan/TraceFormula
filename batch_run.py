@@ -1,7 +1,8 @@
-#! /usr/bin/env sage -python
+#! /usr/local/bin/sage -python
 
 from glob import glob
 import os
+import time
 
 from sage.all import primes
 
@@ -14,7 +15,7 @@ covered = {int(fname.split('_')[-1].split('.')[0]) for fname in fnames}
 not_covered = sorted([x for x in my_primes if x not in covered])
 tmp = {x // num_in_command for x in not_covered}
 tmp = sorted([t for t in tmp])
-commands = ["./bin/traceALbatch-dyn " + str(num_in_command*i) + " " + str(num_in_command*(i + 1)) + " &" for i in tmp]
+commands = ["./bin/traceALbatch_sta " + str(num_in_command*i) + " " + str(num_in_command*(i + 1)) + " &" for i in tmp]
 batches = [commands[i:i+batch_size] for i in range(0,len(commands),batch_size)]
 for batch in batches:
     N_batch = int(batch[-1].split()[-2])
@@ -26,5 +27,5 @@ for batch in batches:
     	  covered = {int(fname.split('_')[-1].split('.')[0]) for fname in fnames}
     	  remain_tiny = sorted([x for x in primes_tiny if x not in covered])
     	  print(len(primes_tiny) - len(remain_tiny), "/", len(primes_tiny))
-    	  sleep(10)
+    	  time.sleep(10)
     print("Finished up to ", N_batch)
