@@ -172,14 +172,17 @@ jobs:
             ${{ matrix.pkg_man }} update
             ${{ matrix.pkg_man }} install autoconf automake libtool ${{ matrix.add_pkgs }}
       
-      - name: Create dummy network device
-        shell: bash
+      - name: Check magma pass file
         run: |
-          ${{ matrix.ip_cmd }} hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           export MAGMAPASSFILE="./magma/magmapassfile"
           chmod +r ./magma/magmapassfile
           ls -l ./magma/magmapassfile
           echo $MAGMAPASSFILE
+      
+      - name: Create dummy network device
+        shell: bash
+        run: |
+          ${{ matrix.ip_cmd }} hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           echo | ./magma/magma
 
       - name: Build 
