@@ -22,7 +22,7 @@ OPT_CFLAGS += $(ALL_CFLAGS)
 # DBG_FULL_CFLAGS = -DDEBUG_LEVEL_FULL
 # DBG_FULL_CFLAGS += ${DBG_CFLAGS}
 
-ALLLDFLAGS = -L${PARI_PATH}/lib -lpari -ffp-contract=off -fno-strict-aliasing
+ALLLDFLAGS = -L${PARI_PATH}/lib -lpari -ffp-contract=off -fno-strict-aliasing -lm -DSO
 
 OPTLDFLAGS = ${ALLLDFLAGS}
 OPTLDFLAGS += -O3
