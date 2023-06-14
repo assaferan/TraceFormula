@@ -1,5 +1,10 @@
+#! /usr/bin/env python
+
 from glob import glob
 import os
+
+from sage import primes
+
 max_N = 10000
 batch_size = 50
 num_in_command = 50
