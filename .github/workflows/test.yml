@@ -177,7 +177,7 @@ jobs:
         run: |
           ${{ matrix.ip_cmd }} hw ether `./magma/magma -d | grep "Valid MAC addresses" -A1 | tail -n1`
           export MAGMAPASSFILE="./magma/magmapassfile"
-          chmod +r magmapassfile
+          chmod +r ./magma/magmapassfile
           ls -l ./magma/magmapassfile
           echo $MAGMAPASSFILE
           echo | ./magma/magma
