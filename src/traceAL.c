@@ -169,8 +169,7 @@ constcoredisc(long lim)
 	// set_avma(av2);
 	avma = av2;
 	cachea = N;
-      }
-      CACHE = update_factor_cache(N, lim, &cacheb);
+	CACHE = update_factor_cache(N, lim, &cacheb);
     }
     F = gel(CACHE, ((N-cachea)>>1)+1); /* factoru(N) */
     D[N] = d = corediscs_fact(F); /* = 3 mod 4 or 4 mod 16 */
