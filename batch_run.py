@@ -1,9 +1,9 @@
-#! /usr/bin/env python
+#! /usr/bin/env sage -python
 
 from glob import glob
 import os
 
-from sage import primes
+from sage.all import primes
 
 max_N = 10000
 batch_size = 50
