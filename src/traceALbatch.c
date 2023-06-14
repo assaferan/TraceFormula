@@ -323,7 +323,7 @@ mycore(ulong n, long *pf)
     if (e & 1) m *= p;
     for (j = 2; j <= e; j+=2) f *= p;
   }
-  *pf = f; return gc_long(av,m);
+  *pf = f; avma = av; return m; // return gc_long(av,m);
 }
 
 /* write -n = Df^2, D < 0 fundamental discriminant. Return D, set f. */
