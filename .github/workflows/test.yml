@@ -16,9 +16,9 @@ jobs:
       - id: set-matrix
         run: |
           matrix=$((
-            # echo '{ "os" : ["ubuntu-latest", "macos-latest"],
-            echo '{ "os" : ["ubuntu-latest"],
-            "target" : ['
+            # echo '{ "os" : ["ubuntu-latest", "macos-latest"],'
+            echo '{ "os" : ["ubuntu-latest"],'
+            echo '"target" : ['
             ls -1 Tests | sed -r 's/^([^,]*)(,?)$/"\1"\2/'  | paste -sd "," -
             echo " ],"
             echo '"include" : [{"pkg_man": "sudo apt-get", "os": "ubuntu-latest"},'
