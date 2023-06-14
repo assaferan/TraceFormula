@@ -27,4 +27,4 @@ for batch in batches:
     	  remain_tiny = sorted([x for x in primes_tiny if x not in covered])
     	  print(len(primes_tiny) - len(remain_tiny), "/", len(primes_tiny))
     	  sleep(10)
-    print "Finished up to ", N_batch
+    print("Finished up to ", N_batch)
