@@ -47,13 +47,15 @@ static THREAD cache caches[] = {
 static void
 cache_reset(long id) { caches[id].miss = caches[id].maxmiss = 0; }
 static void
-cache_delete(long id) { guncloneNULL(caches[id].cache); }
+cache_delete(long id) {/*if (caches[id].cache != NULL) gunclone(caches[id].cache); */ }
 static void
 cache_set(long id, GEN S)
 {
   GEN old = caches[id].cache;
   caches[id].cache = gclone(S);
-  guncloneNULL(old);
+  //  guncloneNULL(old);
+  if (old != NULL)
+    gunclone(old);
 }
 
 /* handle a cache miss: store stats, possibly reset table; return value
@@ -163,8 +165,10 @@ constcoredisc(long lim)
     long i, d, d2;
     GEN F;
     if (N > cacheb)
-         {
-      set_avma(av2); cachea = N;
+      {
+	//set_avma(av2);
+	avma = av2;
+	cachea = N;
       CACHE = update_factor_cache(N, lim, &cacheb);
     }
     F = gel(CACHE, ((N-cachea)>>1)+1); /* factoru(N) */
@@ -179,7 +183,7 @@ constcoredisc(long lim)
     }
   }
   cache_set(cache_D, D);
-  set_avma(av);
+  avma = av; // set_avma(av);
 }
 
 static void
@@ -191,7 +195,7 @@ constfact(long lim)
   if (lim <= 0) lim = 5;
   if (lim <= LIM) return;
   cache_reset(cache_FACT); av = avma;
-  cache_set(cache_FACT, vecfactoru_i(1,lim)); set_avma(av);
+  cache_set(cache_FACT, vecfactoru_i(1,lim)); avma = av; // set_avma(av);
 }
 
 static void
@@ -207,7 +211,7 @@ constdiv(long lim)
   cache_reset(cache_DIV); av = avma;
   VDIV  = cgetg(lim+1, t_VEC);
   for (N = 1; N <= lim; N++) gel(VDIV,N) = divisorsu_fact(gel(VFACT,N));
-  cache_set(cache_DIV, VDIV); set_avma(av);
+  cache_set(cache_DIV, VDIV); avma = av; // set_avma(av);
 }
 
 /* n > 1, D = divisors(n); sets L = 2*lambda(n), S = sigma(n) */
@@ -226,7 +230,9 @@ lamsig(GEN D, long *pL, long *pS)
       break;
     }
   }
-  set_avma(av); *pL = L; *pS = S;
+  //set_avma(av);
+  avma = av;
+  *pL = L; *pS = S;
 }
 
 /* table of 6 * Hurwitz class numbers D <= lim */
@@ -259,7 +265,9 @@ consttabh(long lim)
       GEN F;
       if (N + 2 > cacheb)
       {
-        set_avma(av2); cachea = N;
+        // set_avma(av2);
+	avma = av2;
+	cachea = N;
         CACHE = update_factor_cache(N, lim+2, &cacheb);
       }
       F = gel(CACHE, ((N-cachea)>>1)+1); /* factoru(N) */
@@ -290,7 +298,7 @@ consttabh(long lim)
     lamsig(DN2, &L,&S);
     VHDH0[(N+1) >> 1] = S - 3*(L >> 1) - s - flsq;
   }
-  cache_set(cache_H, VHDH0); set_avma(av);
+    cache_set(cache_H, VHDH0); avma = av; // set_avma(av);
 }
 
 /*************************************************************************/
@@ -547,7 +555,7 @@ time_t timeTraceAL(long upTo, long from)
   GEN k = mkintn(1,2);
   GEN NK;
   GEN res, f, coefs;
-  GEN p_list = primes0(mkvec2(mkintn(1,from), mkintn(1,upTo)));
+  GEN p_list = primes0(mkvec2(mkintn(1,from), nextprime(mkintn(1,upTo))));
   long num_primes = lg(p_list);
   // char* base_filename = "data/traces_";
   // char* suffix = ".m";
@@ -558,18 +566,18 @@ time_t timeTraceAL(long upTo, long from)
   // printf("In timeTraceAL, with upTo = %ld\n", upTo);
   // printf("num_primes = %lu\n", num_primes);
   // pari_printf("last prime = %Ps\n", gel(p_list, num_primes-1));
-  for (long idx = 1; idx < num_primes; idx++)
+  for (long idx = 1; idx < num_primes-1; idx++)
   {
     p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     sprintf(filename, "data/traces_%ld.m", p);
     // printf("output directed to file %s\n", filename);
-    prec = maxuu(2*(p+11) / 12, 1000);
+    prec = maxuu((p+11) / 6, 1000);
     // printf("p = %ld, prec = %ld\n", p, prec);
     res = traceALupto(p, prec+1);
     NK = mkvec2(gel(p_list, idx),k);
     f = mftraceform(NK,0);
-    coefs = mfcoefs(f, prec+1, 1);
+    coefs = mfcoefs(f, prec, 1);
     outfile = fopen(filename, "w");
     if (outfile == NULL)
       printf("Error! Could not open file %s for writing. skipping.\n",
@@ -597,7 +605,7 @@ main(int argc, char* argv[])
   long from = atoi(argv[1]);
   long upto = atoi(argv[2]);
 
-  pari_init(5000000000,2);
+  pari_init(10000000000,2);
   timeTraceAL(upto, from);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
