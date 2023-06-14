@@ -579,6 +579,7 @@ time_t timeTraceAL(long upTo, long from, long k)
   // for (long idx = 1; idx < num_primes-1; idx++)
   for (long N = from; N < upTo; N++) 
   {
+    if (N == 0) continue;
     // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     sprintf(filename, "data/traces_%ld_%ld.m", k, N);
@@ -620,8 +621,9 @@ main(int argc, char* argv[])
   long k = atoi(argv[3]);
 
   pari_init(10000000000,2);
-  time_t timing = timeTraceAL(upto, from, k);
-  printf("took %ld seconds\n", timing);
+  timeTraceAL(upto, from, k);
+  // time_t timing = timeTraceAL(upto, from, k);
+  // printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
   return 0;
