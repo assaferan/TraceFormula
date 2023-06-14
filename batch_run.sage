@@ -1,6 +1,6 @@
 from glob import glob
 import os
-max_N = 800000
+max_N = 10000
 batch_size = 50
 num_in_command = 50
 my_primes = primes(max_N)
