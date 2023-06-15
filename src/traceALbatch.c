@@ -574,7 +574,7 @@ GEN trace_primes(long N, long k, long prec)
   GEN res = cgetg(num_primes-1, t_VEC);
   long p;
   GEN NK = mkvec2(mkintn(1,N),mkintn(1,k));
-  GEN f = mftraceform(NK,0);
+  GEN f = mftraceform(NK,1);
   
   for (long idx = 1; idx < num_primes - 1; idx++)
   {
@@ -632,7 +632,7 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       coefs = trace_primes(N, k, prec+1);
     else {
       NK = mkvec2(mkintn(1,N),mkintn(1,k));
-      f = mftraceform(NK,0);
+      f = mftraceform(NK,1);
       coefs = mfcoefs(f, prec, 1);
     }
     outfile = fopen(filename, "w");
