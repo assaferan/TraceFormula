@@ -135,6 +135,16 @@ function PhiAL(N, a, d)
   return EulerPhi(N) / N;
 end function;
 
+function alpha(n)
+    fac := Factorization(n);
+    ret := 1;
+    for fa in fac do
+	if (fa[2] in [1,2]) then ret := -ret; end if;
+	if (fa[2] ge 4) then return 0; end if;
+    end for;
+    return ret;
+end function;
+
 // Now this seems to work - tested for N <= 100, even k, 2<=k<=12 and 1 <= n <= 10, n = N
 // This formula follows Popa - On the Trace Formula for Hecke Operators on Congruence Subgroups, II
 // Theorem 4. 
@@ -149,8 +159,8 @@ function TraceFormulaGamma0AL(n, N, k)
     t := tN*N;
     for u in Divisors(N) do
       if ((4*n*N-t^2) mod u^2 eq 0) then
-	S1 +:= P(k,t,N*n)*H((4*N*n-t^2) div u^2)*C(1,1,t,N*n)
-				    *MoebiusMu(u) / N^(k div 2-1);
+	S1 +:= alpha(u)*P(k,t,N*n)*H((4*N*n-t^2) div u^2)*C(1,1,t,N*n)
+	       *MoebiusMu(u) / N^(k div 2-1);
       end if;
     end for;
   end for;
@@ -158,12 +168,12 @@ function TraceFormulaGamma0AL(n, N, k)
   for d in Divisors(n*N) do
     a := n*N div d;
     if (a+d) mod N eq 0 then 
-      S2 +:= Minimum(a,d)^(k-1)*PhiAL(N,a,d) / N^(k div 2-1);
+      S2 +:= alpha(d)*Minimum(a,d)^(k-1)*PhiAL(N,a,d) / N^(k div 2-1);
     end if;
   end for;
   ret := -S1 / 2 - S2 / 2;
   if k eq 2 then
-     ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
+     ret +:= &+[alpha(d)*(n div d) : d in Divisors(n) | GCD(d,N) eq 1];
   end if;
   return ret;
 end function;

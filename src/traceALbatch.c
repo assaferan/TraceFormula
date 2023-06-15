@@ -473,6 +473,23 @@ GEN polyGegenbauer(long k, long t, long m)
   return ret;
 }
 
+long alpha(ulong n)
+{
+  pari_sp av = avma;
+  GEN fa = myfactoru(n), P = gel(fa,1), E = gel(fa,2);
+  long i, l = lg(P), m = 1;
+  for (i = 1; i < l; i++)
+  {
+    long j, e = E[i];
+    if ((e == 1) || (e == 2))
+      m = -m;
+    if (e >= 4)
+      m = 0;
+  }
+  avma = av;
+  return m;
+}
+
 // In what follows we assume k >=2 is even
 
 GEN
@@ -508,7 +525,7 @@ traceAL(long N, long n, long k)
        ulong u = gtos(gel(div_N, idx));
        ulong u2 = u*u;
        if (D % u2 == 0) {
-	 inner_sum_t = gaddgs(inner_sum_t, moebius(mkintn(1,u))*H12(D / u2));
+	 inner_sum_t = gaddgs(inner_sum_t, alpha(u)*moebius(mkintn(1,u))*H12(D / u2));
        }
        // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
     }
@@ -528,7 +545,7 @@ traceAL(long N, long n, long k)
     ulong a = nN / d;
     if ((a+d) % N == 0)
     {
-      S2 = gadd(S2, powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
+      S2 = gadd(S2, alpha(d)*powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
     }
   }
 
@@ -546,7 +563,7 @@ traceAL(long N, long n, long k)
       {
 	GEN d = gel(div_n, idx);
 	if (ugcd(N,gtos(d)) == 1)
-	  ret = gadd(ret, gdiv(mkintn(1,n),d));
+	  ret = gadd(ret, gdiv(alpha(d)*mkintn(1,n),d));
       }
   }
   return ret;
