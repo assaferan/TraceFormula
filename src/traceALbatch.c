@@ -552,6 +552,38 @@ traceAL(long N, long n, long k)
   return ret;
 }
 
+GEN traceALprimes(long N, long k, long prec)
+{
+  GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
+  long num_primes = lg(p_list);
+  GEN res = cgetg(num_primes-1, t_VEC);
+  long p;
+  
+  for (long idx = 1; idx < num_primes - 1; idx++)
+  {
+    p = gtos(gel(p_list, idx));
+    gel(res, idx) = traceAL(N, p, k);
+  }
+  return res;
+}
+
+GEN trace_primes(long N, long k, long prec)
+{
+  GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
+  long num_primes = lg(p_list);
+  GEN res = cgetg(num_primes-1, t_VEC);
+  long p;
+  GEN NK = mkvec2(mkintn(1,N),mkintn(1,k));
+  GEN f = mftraceform(NK,0);
+  
+  for (long idx = 1; idx < num_primes - 1; idx++)
+  {
+    p = gtos(gel(p_list, idx));
+    gel(res, idx) = mfcoef(f, p);
+  }
+  return res;
+}
+
 GEN traceALupto(long N, long k, long prec)
 {
   GEN res = cgetg(prec+1, t_VEC);
@@ -563,7 +595,7 @@ GEN traceALupto(long N, long k, long prec)
   return res;
 }
 
-time_t timeTraceAL(long upTo, long from, long k, long num_traces)
+time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes)
 {
   time_t start = time(NULL);
   long prec;
@@ -591,10 +623,18 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces)
     }
     
     // printf("p = %ld, prec = %ld\n", p, prec);
-    res = traceALupto(N, k, prec+1);
-    NK = mkvec2(mkintn(1,N),mkintn(1,k));
-    f = mftraceform(NK,0);
-    coefs = mfcoefs(f, prec, 1);
+    if (only_primes)
+      res = traceALprimes(N, k, prec+1);
+    else
+      res = traceALupto(N, k, prec+1);
+
+    if (only_primes)
+      coefs = trace_primes(N, k, prec+1);
+    else {
+      NK = mkvec2(mkintn(1,N),mkintn(1,k));
+      f = mftraceform(NK,0);
+      coefs = mfcoefs(f, prec, 1);
+    }
     outfile = fopen(filename, "w");
     if (outfile == NULL)
       printf("Error! Could not open file %s for writing. skipping.\n",
@@ -612,10 +652,10 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces)
 int
 main(int argc, char* argv[])
 {
-  if ((argc < 4) || (argc > 5))
+  if ((argc < 4) || (argc > 6))
     {
       printf("Incorrect number of arguments.\n");
-      printf("Usage: %s <from> <to> <weight> (<num_traces>) \n", argv[0]);
+      printf("Usage: %s <from> <to> <weight> (<num_traces>) (<only_primes>) \n", argv[0]);
       printf("computes traces of S_k(N)^+ for level N between from and to, weight k and for Hecke operators up to the greatest between the Sturm bound, 30 sqrt(p) and 1000 if not specified.\n");
       return -1;
     }
@@ -623,11 +663,14 @@ main(int argc, char* argv[])
   long upto = atoi(argv[2]);
   long k = atoi(argv[3]);
   long num_traces = -1;
-  if (argc == 5)
+  int only_primes = 0;
+  if (argc >= 5)
     num_traces = atoi(argv[4]);
+  if (argc == 6)
+    only_primes = atoi(argv[5]);
 
   pari_init(10000000000,2);
-  timeTraceAL(upto, from, k, num_traces);
+  timeTraceAL(upto, from, k, num_traces, only_primes);
   // time_t timing = timeTraceAL(upto, from, k);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
