@@ -3,13 +3,13 @@ bin_PROGRAMS = traceAL_sta traceALbatch_sta traceAL_dyn traceALbatch_dyn
 ALL_CFLAGS = -I. -I${PARI_PATH}/include -Wall -Werror -ffp-contract=off -fno-strict-aliasing
 
 OPT_CFLAGS = -O3 -DNDEBUG -msse3 -mavx
-# DBG_CFLAGS = -g -DDEBUG -fsanitize=address
+DBG_CFLAGS = -g -DDEBUG -fsanitize=address
 OPT_CFLAGS += -fomit-frame-pointer
 
 if LINUX
 	OPT_CFLAGS += -fvar-tracking-assignments-toggle
 	OPT_CFLAGS += -funroll-all-loops
-        # DBG_CFLAGS += -pg
+        DBG_CFLAGS += -pg
 endif
 
 if OSX
@@ -17,17 +17,17 @@ if OSX
 endif
 
 OPT_CFLAGS += $(ALL_CFLAGS)
-# DBG_CFLAGS += ${ALL_CFLAGS}
+DBG_CFLAGS += ${ALL_CFLAGS}
 
-# DBG_FULL_CFLAGS = -DDEBUG_LEVEL_FULL
-# DBG_FULL_CFLAGS += ${DBG_CFLAGS}
+DBG_FULL_CFLAGS = -DDEBUG_LEVEL_FULL
+DBG_FULL_CFLAGS += ${DBG_CFLAGS}
 
-ALLLDFLAGS = -L${PARI_PATH}/lib -lpari -ffp-contract=off -fno-strict-aliasing -lm -DSO
+ALL_LD_FLAGS = -L${PARI_PATH}/lib -lpari -ffp-contract=off -fno-strict-aliasing -lm -DSO
 
-OPTLDFLAGS = ${ALLLDFLAGS}
-OPTLDFLAGS += -O3
+OPT_LD_FLAGS = ${ALL_LD_FLAGS}
+OPT_LD_FLAGS += -O3
 
-# DBG_LD_FLAGS = ${ALL_LDFLAGS}
+DBG_LD_FLAGS = ${ALL_LD_FLAGS}
 # DBG_LD_FLAGS += -fsanitize=leak
 
 DLCFLAGS   = -fPIC
@@ -41,12 +41,12 @@ traceAL_dyn_SOURCES = traceAL.c
 traceALbatch_dyn_SOURCES = traceALbatch.c
 
 traceAL_sta_CFLAGS = ${OPT_CFLAGS}
-traceAL_sta_LDFLAGS = ${OPTLDFLAGS}
+traceAL_sta_LDFLAGS = ${OPT_LD_FLAGS}
 traceALbatch_sta_CFLAGS = ${OPT_CFLAGS}
-traceALbatch_sta_LDFLAGS = ${OPTLDFLAGS}
+traceALbatch_sta_LDFLAGS = ${OPT_LD_FLAGS}
 
 traceAL_dyn_CFLAGS = ${OPT_CFLAGS} ${DLCFLAGS}
-traceAL_dyn_LDFLAGS = ${OPTLDFLAGS} ${MODLDFLAGS}
-traceALbatch_dyn_CFLAGS = ${OPT_CFLAGS} ${DLCFLAGS}
-traceALbatch_dyn_LDFLAGS = ${OPTLDFLAGS} ${MODLDFLAGS}
+traceAL_dyn_LDFLAGS = ${OPT_LD_FLAGS} ${MODLDFLAGS}
+traceALbatch_dyn_CFLAGS =  ${DLCFLAGS} ${OPT_CFLAGS} # ${DBG_FULL_CFLAGS}
+traceALbatch_dyn_LDFLAGS =  ${MODLDFLAGS} ${OPT_LD_FLAGS} # ${DBG_LD_FLAGS}
 

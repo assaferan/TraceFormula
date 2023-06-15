@@ -563,7 +563,7 @@ GEN traceALupto(long N, long k, long prec)
   return res;
 }
 
-time_t timeTraceAL(long upTo, long from, long k)
+time_t timeTraceAL(long upTo, long from, long k, long num_traces)
 {
   time_t start = time(NULL);
   long prec;
@@ -574,9 +574,7 @@ time_t timeTraceAL(long upTo, long from, long k)
   FILE* outfile;
   
   // printf("In timeTraceAL, with upTo = %ld\n", upTo);
-  // printf("num_primes = %lu\n", num_primes);
-  // pari_printf("last prime = %Ps\n", gel(p_list, num_primes-1));
-  // for (long idx = 1; idx < num_primes-1; idx++)
+  
   for (long N = from; N < upTo; N++) 
   {
     if (N == 0) continue;
@@ -584,9 +582,14 @@ time_t timeTraceAL(long upTo, long from, long k)
     // sprintf(p_str, "%d", p);
     sprintf(filename, "data/traces_%ld_%ld.m", k, N);
     // printf("output directed to file %s\n", filename);
-    prec = maxuu((k*N+11) / 12, 1000);
-    prec = maxuu(prec, 30*sqrt(N));
-
+    if (num_traces == -1) {
+      prec = maxuu((k*N+11) / 12, 1000);
+      prec = maxuu(prec, 30*sqrt(N));
+    }
+    else {
+      prec = num_traces;
+    }
+    
     // printf("p = %ld, prec = %ld\n", p, prec);
     res = traceALupto(N, k, prec+1);
     NK = mkvec2(mkintn(1,N),mkintn(1,k));
@@ -609,19 +612,22 @@ time_t timeTraceAL(long upTo, long from, long k)
 int
 main(int argc, char* argv[])
 {
-  if (argc != 4)
+  if ((argc < 4) || (argc > 5))
     {
       printf("Incorrect number of arguments.\n");
-      printf("Usage: %s <from> <to> <weight>\n", argv[0]);
-      printf("computes traces for levels between from and to.\n");
+      printf("Usage: %s <from> <to> <weight> (<num_traces>) \n", argv[0]);
+      printf("computes traces of S_k(N)^+ for level N between from and to, weight k and for Hecke operators up to the greatest between the Sturm bound, 30 sqrt(p) and 1000 if not specified.\n");
       return -1;
     }
   long from = atoi(argv[1]);
   long upto = atoi(argv[2]);
   long k = atoi(argv[3]);
+  long num_traces = -1;
+  if (argc == 5)
+    num_traces = atoi(argv[4]);
 
   pari_init(10000000000,2);
-  timeTraceAL(upto, from, k);
+  timeTraceAL(upto, from, k, num_traces);
   // time_t timing = timeTraceAL(upto, from, k);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
