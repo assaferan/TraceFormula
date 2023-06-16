@@ -6,7 +6,7 @@ import time
 
 k = 4
 min_N = 1
-max_N = 100
+max_N = 100000
 batch_size = 50
 num_in_command = 50
 fnames = glob("data/traces_*")
@@ -20,7 +20,7 @@ for batch in batches:
     N_batch = int(batch[-1].split()[-2])
     levels_tiny = {N for N in range(min_N, N_batch)}
     remain_tiny = sorted([x for x in levels_tiny if x not in covered])
-    print("Running the following commands:", batch)
+    # print("Running the following commands:", batch)
     tmp = [os.system(cmd) for cmd in batch]
     while len(remain_tiny) > 0:
     	  fnames = glob("data/traces_*")

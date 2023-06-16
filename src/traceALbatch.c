@@ -645,7 +645,7 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       //pari_printf("traces := %Ps;\ntracesAL := %Ps;\n", coefs, res);
     fclose(outfile);
   }
-  printf("Finished.\n");
+  // printf("Finished.\n");
   return time(NULL) - start;
 }
 
