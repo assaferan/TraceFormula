@@ -4,7 +4,7 @@ from glob import glob
 import os
 import time
 
-k = 4
+k = 2
 min_N = 1
 max_N = 100000
 batch_size = 50
@@ -17,7 +17,7 @@ tmp = sorted([t for t in tmp])
 commands = ["./src/traceALbatch_sta " + str(min_N + num_in_command*i) + " " + str(min_N + num_in_command*(i + 1)) + " " + str(k) + " &" for i in tmp]
 batches = [commands[i:i+batch_size] for i in range(0,len(commands),batch_size)]
 for batch in batches:
-    N_batch = int(batch[-1].split()[-2])
+    N_batch = int(batch[-1].split()[-3])
     levels_tiny = {N for N in range(min_N, N_batch)}
     remain_tiny = sorted([x for x in levels_tiny if x not in covered])
     # print("Running the following commands:", batch)
