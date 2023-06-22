@@ -21,3 +21,5 @@ m4
 Makefile
 configure
 ltmain.sh
+*.sig
+Tests/*.sig
