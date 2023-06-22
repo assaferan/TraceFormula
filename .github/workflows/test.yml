@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [ 'composite_level', 'main' ]
+    branches: [ 'newforms', 'composite_level', 'main' ]
 
   pull_request_target:
 
