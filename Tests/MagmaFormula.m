@@ -5,7 +5,8 @@ procedure testPariVSMagma(N,k : New := false, OnlyPrimes := false, Prec := 1000)
 	printf("Error! Only supports newsubspace for prime Hecke operators!\n");
 	assert false;
     end if;
-    cmd := Sprintf("./src/traceALbatch_sta %o %o %o %o %o %o", N, N+1, k, Prec, OnlyPrimes, New);
+    cmd := Sprintf("./src/traceALbatch_sta %o %o %o %o %o %o", N, N+1, k, Prec,
+		   OnlyPrimes select 1 else 0, New select 1 else 0);
     System(cmd);
     fname := Sprintf("./data/traces_%o_%o.m", k, N);
     r := Read(fname);

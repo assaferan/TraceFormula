@@ -14,7 +14,8 @@ procedure testPariVSMS(N,k,n : New := false)
 	end if;
 	n_idx := n + 1;
     end if;
-    cmd := Sprintf("./src/traceALbatch_sta %o %o %o %o %o %o", N, N+1, k, n, is_prime, New);
+    cmd := Sprintf("./src/traceALbatch_sta %o %o %o %o %o %o", N, N+1, k, n,
+		   is_prime select 1 else 0, New select 1 else 0);
     System(cmd);
     fname := Sprintf("./data/traces_%o_%o.m", k, N);
     r := Read(fname);
