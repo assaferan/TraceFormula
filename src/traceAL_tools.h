@@ -35,10 +35,10 @@ long alpha(ulong n);
 
 GEN traceAL(long N, long n, long k);
 
-GEN traceALprimes(long N, long k, long prec);
+GEN traceALprimes(long N, long k, long prec, int newspace);
 
-GEN trace_primes(long N, long k, long prec);
+GEN trace_primes(long N, long k, long prec, int newspace);
 
 GEN traceALupto(long N, long k, long prec);
 
-time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes);
+time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes, int newspace);

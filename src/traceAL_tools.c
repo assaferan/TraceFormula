@@ -540,37 +540,128 @@ GEN traceAL(long N, long n, long k)
   return ret;
 }
 
-// At the moment only workd for primes
-GEN traceALNew(long N, long p, long k)
+GEN traceALNewTrivial(long N, long k)
 {
-  GEN ret = gen_0;
+  GEN trace = gen_0;
+  GEN NN = mkintn(1,N);
+  GEN div_N = divisors(NN);
+  long num_divs_N = lg(div_N);
 
-  return ret;
+  for (long idx = 1; idx < num_divs_N; idx++) {
+    GEN D = gel(div_N, idx);
+    GEN D2 = gmul(D,D);
+    
+    // if ((N % (d*d)) != 0) continue;
+    if (gmod(NN, D2) != gen_0) continue;
+    long N_div_d2 = gtos(gdivent(NN, D2));
+    trace = gadd(trace, gmulsg(moebius(D),traceAL(N_div_d2, 1, k)));
+  }
+
+  // pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
+  
+  return trace;
 }
 
-GEN traceALprimes(long N, long k, long prec)
+GEN traceALNewTrivialContribution(long N, long p, long k)
+{
+  GEN trace;
+  GEN trace2 = gen_0;
+  GEN trace3 = gen_0;
+  GEN div_N = divisors(mkintn(1,N));
+  long num_divs_N = lg(div_N);
+
+  for (long idx = 1; idx < num_divs_N; idx++) {
+    long d = gtos(gel(div_N, idx));
+    long N_div_d = N / d;
+    // We use valuation, since p^3 might not be a single-word integer
+    if ((d % p == 0) || (gvaluation(mkintn(1,N_div_d), mkintn(1,p)) >= 3)) continue;
+    if (! issquare(mkintn(1,p*N_div_d)) ) continue;
+    trace2 = gadd(trace2, traceALNewTrivial(d, k));
+  }
+  // pari_printf("Contribution from N2 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace2);
+
+  if (N % p == 0) {
+    long N_div_p = N / p;
+    GEN div_N_div_p = divisors(mkintn(1,N_div_p));
+    long num_divs_N_div_p = lg(div_N_div_p);
+    for (long idx = 1; idx < num_divs_N_div_p; idx++) {
+      long d = gtos(gel(div_N_div_p, idx));
+      if (! issquare(mkintn(1,N_div_p / d)) ) continue;
+      trace3 = gadd(trace3, traceALNewTrivial(d, k));
+    }
+  }
+  // pari_printf("Contribution from N3 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace3);
+  
+  // Since p is at most one word length, we can estimate the size of its powers accordingly
+  trace = gsub(gmul(gpow(mkintn(1,p), mkintn(1,k/2), k/2), trace3),
+	       gmul(gpow(mkintn(1,p), mkintn(1,k/2-1), k/2-1), trace2));
+
+  // pari_printf("Trivial contribution from level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace);
+  return trace;
+}
+
+// At the moment only works for primes
+GEN traceALNew(long N, long p, long k)
+{
+  GEN trace = gen_0;
+  GEN NN = mkintn(1,N);
+  GEN div_N = divisors(NN);
+  long num_divs_N = lg(div_N);
+
+  // printf("In traceALNew with N = %ld.\n", N);
+  
+  for (long idx = 1; idx < num_divs_N; idx++) {
+    GEN D = gel(div_N, idx);
+    GEN D2 = gmul(D,D);
+
+    // pari_printf("D = %Ps \n", D);
+    // pari_printf("N mod (D^2) = %Ps \n", gmod(NN,D2));
+    // printf("(N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != 0));
+    // printf("gen_0 (N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != gen_0));
+    // printf("cmp (N mod (D^2) != 0) = %d \n", gcmp(gmod(NN,D2),gen_0));
+    // printf("gtos(D) mod p = %ld\n", gtos(D) % p);
+    // printf("(gtos(D) mod p == 0) =  %d\n", gtos(D) % p == 0);
+    
+    if (gmod(NN, D2) != gen_0) continue;
+    if (gtos(D) % p == 0) continue;
+    
+    long N_div_d2 = gtos(gdivent(NN, D2));
+    trace = gadd(trace, gmulsg(moebius(D), gsub(traceAL(N_div_d2,p,k), traceALNewTrivialContribution(N_div_d2,p,k))));
+    // pari_printf("Accumulated trace is: %Ps \n", trace);
+  }
+  
+  return trace;
+}
+
+GEN traceALprimes(long N, long k, long prec, int newspace)
 {
   GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
   GEN res = cgetg(num_primes-1, t_VEC);
   long p;
+
+  GEN (*trace_func)(long, long, long);
+  trace_func = (newspace ? &traceALNew : &traceAL);
+
+  // printf("In traceALprimes. num_primes = %ld. newspace = %d. \n", num_primes, newspace);
+  // printf("trace_func = %x.\n", (unsigned int)trace_func);
   
   for (long idx = 1; idx < num_primes - 1; idx++)
   {
     p = gtos(gel(p_list, idx));
-    gel(res, idx) = traceAL(N, p, k);
+    gel(res, idx) = (*trace_func)(N, p, k);
   }
   return res;
 }
 
-GEN trace_primes(long N, long k, long prec)
+GEN trace_primes(long N, long k, long prec, int newspace)
 {
   GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
   GEN res = cgetg(num_primes-1, t_VEC);
   long p;
   GEN NK = mkvec2(mkintn(1,N),mkintn(1,k));
-  GEN f = mftraceform(NK,1);
+  GEN f = mftraceform(NK,newspace ? 0 : 1);
   
   for (long idx = 1; idx < num_primes - 1; idx++)
   {
@@ -591,7 +682,7 @@ GEN traceALupto(long N, long k, long prec)
   return res;
 }
 
-time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes)
+time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes, int newspace)
 {
   time_t start = time(NULL);
   long prec;
@@ -620,12 +711,12 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     
     // printf("p = %ld, prec = %ld\n", p, prec);
     if (only_primes)
-      res = traceALprimes(N, k, prec+1);
+      res = traceALprimes(N, k, prec+1, newspace);
     else
       res = traceALupto(N, k, prec+1);
 
     if (only_primes)
-      coefs = trace_primes(N, k, prec+1);
+      coefs = trace_primes(N, k, prec+1, newspace);
     else {
       NK = mkvec2(mkintn(1,N),mkintn(1,k));
       f = mftraceform(NK,1);
@@ -641,6 +732,6 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       //pari_printf("traces := %Ps;\ntracesAL := %Ps;\n", coefs, res);
     fclose(outfile);
   }
-  printf("Finished.\n");
+  // printf("Finished.\n");
   return time(NULL) - start;
 }
