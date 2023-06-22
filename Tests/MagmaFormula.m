@@ -5,8 +5,12 @@ procedure testPariVSMagma(N,k)
     System(cmd);
     fname := Sprintf("./data/traces_%o_%o.m", k, N);
     r := Read(fname);
-    return_cmd := Sprintf("return traces_%o, tracesAL_%o;", N, N);
-    traces_full, traces_AL := eval(r cat return_cmd);
+    al_start := Index(r, "tracesAL");
+    r := r[al_start..#r];
+    start := Index(r, "[") + 1;
+    fin := Index(r, "]") - 1;
+    r := r[start..fin];
+    traces_AL := [StringToInteger(x) : x in Split(r, ",")];
     traces_magma := [TraceFormulaGamma0AL(n, N, k) : n in [1..1000]];
     assert traces_magma eq traces_AL[2..1001];
     return;
