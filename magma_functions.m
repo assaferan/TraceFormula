@@ -150,7 +150,7 @@ end function;
 // Theorem 4. 
 // (Also appears in Skoruppa-Zagier, but this way of stating the formula was easier to work with).
 function TraceFormulaGamma0AL(n, N, k)
-    if (n eq 0) return 0; // for compatibility with q-expansions
+    if (n eq 0) then return 0; end if; // for compatibility with q-expansions
   S1 := 0;
 //  max_abst := Floor(SquareRoot(4*N*n));
   max_abst := Floor(SquareRoot(4*N*n)) div N;
