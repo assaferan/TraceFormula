@@ -14,8 +14,6 @@ typedef struct {
   long compressed;
 } cache;
 
-static THREAD cache caches[4];
-
 GEN getcache(void);
 
 void pari_close_mf(void);

@@ -540,6 +540,14 @@ GEN traceAL(long N, long n, long k)
   return ret;
 }
 
+// At the moment only workd for primes
+GEN traceALNew(long N, long p, long k)
+{
+  GEN ret = gen_0;
+
+  return ret;
+}
+
 GEN traceALprimes(long N, long k, long prec)
 {
   GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
