@@ -63,7 +63,7 @@ for i in [1..num_tests] do
     max_weight := Floor(Sqrt(max_Nk2/N));
     ks := [2..max_weight by 2];
     k := Random(ks);
-    p := Random(PrimesDivisors(N));
+    p := Random(PrimeDivisors(N));
     printf "(%o;%o;%o),", N, k, p;
     testPariVSMS(N,k,p : New);
 end for;
