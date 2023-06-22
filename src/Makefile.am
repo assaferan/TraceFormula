@@ -34,11 +34,11 @@ DLCFLAGS   = -fPIC
 # MODLDFLAGS = -bundle -undefined dynamic_lookup ${DLCFLAGS}
 MODLDFLAGS = ${DLCFLAGS}
 
-traceAL_sta_SOURCES = traceAL.c
-traceALbatch_sta_SOURCES = traceALbatch.c
+traceAL_sta_SOURCES = traceAL.c traceAL_tools.c
+traceALbatch_sta_SOURCES = traceALbatch.c traceAL_tools.c
 
-traceAL_dyn_SOURCES = traceAL.c
-traceALbatch_dyn_SOURCES = traceALbatch.c
+traceAL_dyn_SOURCES = traceAL.c traceAL_tools.c
+traceALbatch_dyn_SOURCES = traceALbatch.c traceAL_tools.c
 
 traceAL_sta_CFLAGS = ${OPT_CFLAGS}
 traceAL_sta_LDFLAGS = ${OPT_LD_FLAGS}
