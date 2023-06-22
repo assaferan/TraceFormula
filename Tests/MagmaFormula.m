@@ -159,7 +159,7 @@ function TraceFormulaGamma0AL(n, N, k)
     t := tN*N;
     for u in Divisors(N) do
       if ((4*n*N-t^2) mod u^2 eq 0) then
-	S1 +:= alpha(u)*P(k,t,N*n)*H((4*N*n-t^2) div u^2)*C(1,1,t,N*n)
+	S1 +:= P(k,t,N*n)*H((4*N*n-t^2) div u^2)*C(1,1,t,N*n)
 	       *MoebiusMu(u) / N^(k div 2-1);
       end if;
     end for;
@@ -168,14 +168,35 @@ function TraceFormulaGamma0AL(n, N, k)
   for d in Divisors(n*N) do
     a := n*N div d;
     if (a+d) mod N eq 0 then 
-      S2 +:= alpha(d)*Minimum(a,d)^(k-1)*PhiAL(N,a,d) / N^(k div 2-1);
+      S2 +:= Minimum(a,d)^(k-1)*PhiAL(N,a,d) / N^(k div 2-1);
     end if;
   end for;
   ret := -S1 / 2 - S2 / 2;
   if k eq 2 then
-     ret +:= &+[alpha(d)*(n div d) : d in Divisors(n) | GCD(d,N) eq 1];
+     ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
   end if;
   return ret;
+end function;
+
+// At the moment only works for Hecke operators at primes
+function TrivialContribution(N, k, p)
+    assert IsPrime(p);
+    N_primes_2 := [d : d in Divisors(N) | IsSquare(N*p div d) and ((N div d) mod p^3 ne 0) and (d mod p ne 0)];
+    trace_2 := &+[Integers() | get_trace(N_prime, k, 1 : New) : N_prime in N_primes_2];
+    trace_3 := 0;
+    if (N mod p eq 0) then
+	N_primes_3 := [d : d in Divisors(N div p) | IsSquare(N div (d*p))];
+	trace_3 := &+[Integers() | get_trace(N_prime, k, 1 : New) :  N_prime in N_primes_3];
+    end if;
+    return p^(k div 2) * trace_3  - p^(k div 2 - 1)*trace_2;
+end function;
+
+// At the moment only works for Hecke operators at primes
+function TraceFormulaGamma0ALNew(p, N, k)
+    assert IsPrime(p);
+    ms := [d : d in Divisors(N) | (N mod d^2 eq 0) and (d mod p ne 0)];
+    trace := &+[Integers() | MoebiusMu(m)*(TraceFormulaGamma0AL(p, N div m^2, k) - TrivialContribution(N div m^2, k, p)) : m in ms];
+    return trace;
 end function;
 
 function A1(n,N,k)
