@@ -201,6 +201,7 @@ end function;
 
 // At the moment only works for Hecke operators at primes
 function TraceFormulaGamma0ALNew(p, N, k)
+    if (p eq 1) then return TraceFormulaGamma0ALTrivialNew(N, k); end if;
     assert IsPrime(p);
     ms := [d : d in Divisors(N) | (N mod d^2 eq 0) and (d mod p ne 0)];
     trace := &+[Integers() | MoebiusMu(m)*(TraceFormulaGamma0AL(p, N div m^2, k) - TrivialContribution(N div m^2, k, p)) : m in ms];
