@@ -2,11 +2,13 @@
 
 from glob import glob
 import os
+import sys
 import time
 
-k = 4
-min_N = 1
-max_N = 100000
+k = eval(sys.argv[3])
+min_N = eval(sys.argv[1])
+max_N = eval(sys.argv[2])
+print("k, min_N, max_N = ", k, min_N, max_N)
 batch_size = 20
 num_in_command = 20
 fnames = glob("data/traces_" + str(k) + "_*")
