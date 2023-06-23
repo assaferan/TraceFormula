@@ -17,7 +17,7 @@ procedure testPariVSMagma(N,k : New := false, OnlyPrimes := false, Prec := 1000)
     r := r[start..fin];
     traces_AL := [StringToInteger(x) : x in Split(r, ",")];
     trace_func := New select TraceFormulaGamma0ALNew else TraceFormulaGamma0AL;
-    val_list := OnlyPrimes select PrimesUpTo(Prec) else [0..Prec];
+    val_list := OnlyPrimes select [1] cat PrimesUpTo(Prec) else [0..Prec];
     traces_magma := [trace_func(n, N, k) : n in val_list];
     assert traces_magma eq traces_AL[1..#val_list];
     return;

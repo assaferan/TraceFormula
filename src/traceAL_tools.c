@@ -637,7 +637,9 @@ GEN traceALprimes(long N, long k, long prec, int newspace)
 {
   GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
-  GEN res = cgetg(num_primes-1, t_VEC);
+  // adding also the trace for T_1 = 1
+  // GEN res = cgetg(num_primes-1, t_VEC);
+  GEN res = cgetg(num_primes, t_VEC);
   long p;
 
   GEN (*trace_func)(long, long, long);
@@ -645,11 +647,14 @@ GEN traceALprimes(long N, long k, long prec, int newspace)
 
   // printf("In traceALprimes. num_primes = %ld. newspace = %d. \n", num_primes, newspace);
   // printf("trace_func = %x.\n", (unsigned int)trace_func);
+
+  gel(res, 1) = (newspace ? traceALNewTrivial(N,k) : traceAL(N,1,k));
   
   for (long idx = 1; idx < num_primes - 1; idx++)
   {
     p = gtos(gel(p_list, idx));
-    gel(res, idx) = (*trace_func)(N, p, k);
+    // gel(res, idx) = (*trace_func)(N, p, k);
+    gel(res, idx+1) = (*trace_func)(N, p, k);
   }
   return res;
 }
@@ -658,15 +663,20 @@ GEN trace_primes(long N, long k, long prec, int newspace)
 {
   GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
-  GEN res = cgetg(num_primes-1, t_VEC);
+  // adding trace of the identity (dimension of the space)
+  // GEN res = cgetg(num_primes-1, t_VEC);
+  GEN res = cgetg(num_primes, t_VEC);
   long p;
   GEN NK = mkvec2(mkintn(1,N),mkintn(1,k));
   GEN f = mftraceform(NK,newspace ? 0 : 1);
+
+  gel(res, 1) = mfcoef(f, 1);
   
   for (long idx = 1; idx < num_primes - 1; idx++)
   {
     p = gtos(gel(p_list, idx));
-    gel(res, idx) = mfcoef(f, p);
+    // gel(res, idx) = mfcoef(f, p);
+    gel(res, idx+1) = mfcoef(f, p);
   }
   return res;
 }

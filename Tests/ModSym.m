@@ -6,7 +6,7 @@ import "magma_functions.m" : get_trace;
 procedure testPariVSMS(N,k,n : New := false)
     is_prime := IsPrime(n);
     if (is_prime) then
-	n_idx := #PrimesUpTo(n);
+	n_idx := #PrimesUpTo(n) + 1;
     else
 	if (New) then
 	    printf("Error! Only supports newsubspace for prime Hecke operators!\n");
@@ -25,9 +25,6 @@ procedure testPariVSMS(N,k,n : New := false)
     fin := Index(r, "]") - 1;
     r := r[start..fin];
     traces_AL := [StringToInteger(x) : x in Split(r, ",")];
-    // C := CuspidalSubspace(ModularSymbols(N,k,1));
-    // al := AtkinLehner(C,N);
-    // T := HeckeOperator(C,n);
     assert traces_AL[n_idx] eq get_trace(N,k,n : New := New); // Trace(al*T);
     return;
 end procedure;
