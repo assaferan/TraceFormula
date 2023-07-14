@@ -780,9 +780,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
   char filename[80];
   FILE* outfile;
 
-#ifdef DEBUG
+  // #ifdef DEBUG
   printf("In timeTraceAL, with upTo = %ld\n", upTo);
-#endif // DEBUG
+  // #endif // DEBUG
   
   for (long N = from; N < upTo; N++) 
   {
@@ -790,9 +790,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     snprintf(filename, 30, "data/traces_%ld_%ld.m", k, N);
-#ifdef DEBUG
+    // #ifdef DEBUG
     printf("output directed to file %s\n", filename);
-#endif // DEBUG
+    // #endif // DEBUG
     if (num_traces == -1) {
       prec = maxuu((k*N+11) / 12, 1000);
       prec = maxuu(prec, 30*sqrt(N));
@@ -812,9 +812,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       f = mftraceform(NK,1);
       all_coefs = mfcoefs(f, prec, 1);
       coefs = cgetg(prec+1-start, t_VEC);
-#ifdef DEBUG
+      // #ifdef DEBUG
       printf("getting trace form coefficients, start = %ld...\n", start);
-#endif // DEBUG
+      // #endif // DEBUG
       for (long i = start+1; i <= prec; i++) {
 	gel(coefs, i-start) = gel(all_coefs, i);
       }
