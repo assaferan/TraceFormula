@@ -433,7 +433,7 @@ long H12(GEN D)
   // #endif // DEBUG_LEVEL_FULL
   GEN uu;
   long u;
-  long Dmod4 = gtos(lift(gmod(D,mkintn(1,4))));
+  long Dmod4 = gtoW64(gmod(D,mkintn(1,4)));
   if (D == gen_0) return -1;
   if (D > gen_0)
     switch (Dmod4) {
