@@ -717,9 +717,9 @@ GEN traceALprimes(long N, long k, long prec, int newspace, long start)
   GEN (*trace_func)(long, long, long);
   trace_func = (newspace ? &traceALNew : &traceAL);
 
-#ifdef DEBUG
+  // #ifdef DEBUG
   printf("In traceALprimes. num_primes = %ld. newspace = %d. start = %ld. \n", num_primes, newspace, start);
-#endif // DEBUG
+  // #endif // DEBUG
 
   gel(res, 1) = (newspace ? traceALNewTrivial(N,k) : traceAL(N,1,k));
   
@@ -800,6 +800,7 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     else {
       prec = num_traces;
     }
+    printf("before traceAL");
     if (only_primes)
       res = traceALprimes(N, k, prec+1, newspace, start);
     else
