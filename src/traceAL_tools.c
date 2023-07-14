@@ -429,7 +429,7 @@ long H12(GEN D)
   printf("In H12\n");
   pari_printf("D = %Ps\n", D);
   pari_printf("D mod 4 = %Ps\n", gmod(D,mkintn(1,4)));
-  printf("D mod 4 = %ld\n", gtos(gmod(D,mkintn(1,4))));
+  // printf("D mod 4 = %ld\n", gtos(gmod(D,mkintn(1,4))));
   GEN uu;
   long u;
   long Dmod4 = gtos(gmod(D,mkintn(1,4)));
@@ -536,14 +536,14 @@ GEN traceAL(long N, long n, long k)
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
     GEN t = gmul(NN, mksintn(1,tN));
-    // #ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
-    // #endif // DEBUG_LEVEL_FULL
+#endif // DEBUG_LEVEL_FULL
     GEN t2 = gmul(t,t);
     GEN D = gsub(n4N, t2);
-    // #ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("t = %Ps, D = %Ps, ", t, D);
-    // #endif // DEBUG_LEVEL_FULL
+#endif // DEBUG_LEVEL_FULL
     GEN inner_sum_t = gen_0;
     for (long idx = 1; idx < num_divs_N; idx++) {
       GEN u = gel(div_N, idx);
@@ -552,9 +552,9 @@ GEN traceAL(long N, long n, long k)
 	pari_printf("u = %Ps, u2 = %Ps, inner_sum_t = %Ps\n", u, u2, inner_sum_t);
 	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
       }
-      //#ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
       pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
-      // #endif // DEBUG_LEVEL_FULL
+#endif // DEBUG_LEVEL_FULL
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
@@ -571,16 +571,16 @@ GEN traceAL(long N, long n, long k)
   // #endif // DEBUG
   for (long idx = 1; idx < num_divs_nN; idx++)
     {
-      // #ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
-    // #endif // DEBUG
+#endif // DEBUG
     GEN d = gel(div_nN, idx);
     GEN a = gdivent(nN, d);
     if (gmod(gadd(a,d), NN) == gen_0)
     {
-      // #ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
       printf("Adding to S2...\n");
-      // #endif // DEBUG_LEVEL_FULL
+#endif // DEBUG_LEVEL_FULL
       S2 = gadd(S2, powgi(gmin(a,d), mkintn(1,k-1)));
     }
   }
