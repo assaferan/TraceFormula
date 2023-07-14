@@ -1,4 +1,5 @@
 #include <pari/pari.h>
+#include <inttypes.h>
 #include <time.h>
 
 #include "traceAL_tools.h"
@@ -51,7 +52,7 @@ static void cache_set(long id, GEN S)
 static GEN cache_get(long id, W64 D)
 {
 #ifdef DEBUG
-  printf("In cache_get, with id = %ld, D = %llu\n", id, D);
+  printf("In cache_get, with id = %ld, D = %" PRId64 "\n", id, D);
 #endif // DEBUG
   cache *S = &caches[id];
   const W64 d = S->compressed? D>>1: D;
