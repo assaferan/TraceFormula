@@ -426,6 +426,7 @@ W64 gtoW64(GEN D)
 long H12(GEN D)
 {
   // !! TODO - There might be an overflow here - try to fix that!
+  printf("In H12\n");
   GEN uu;
   long u;
   if (D == gen_0) return -1;
@@ -433,6 +434,7 @@ long H12(GEN D)
     switch (gtos(gmod(D,mkintn(1,4)))) {
     case 0:
     case 3:
+      printf("entering hclassno6w64\n");
       return 2*hclassno6w64(gtoW64(D));
     case 1:
     case 2:
