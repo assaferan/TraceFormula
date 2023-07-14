@@ -50,7 +50,9 @@ static void cache_set(long id, GEN S)
  * W64 where the 0 value is impossible, and return it (typecast to GEN) */
 static GEN cache_get(long id, W64 D)
 {
-  // printf("In cache_get, with id = %ld, D = %lu\n", id, D);
+#ifdef DEBUG
+  printf("In cache_get, with id = %ld, D = %llu\n", id, D);
+#endif // DEBUG
   cache *S = &caches[id];
   const W64 d = S->compressed? D>>1: D;
   W64 max, l;
@@ -373,7 +375,9 @@ static ulong hclassno6u_count(W64 d)
 static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
 {
   long h;
-  // printf("In hclassno6u_2, with D = %lu, D0 = %lu, F = %lu\n", D, D0, F);
+#ifdef DEBUG
+  printf("In hclassno6u_2, with D = %llu, D0 = %llu, F = %llu\n", D, D0, F);
+#endif // DEBUG
   if (F == 1) h = hclassno6u_count(D);
   else
   { /* second chance */
@@ -388,14 +392,20 @@ static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
  * is stored at D>>1 */
 ulong hclassno6w64(W64 D)
 {
-  // printf("In hclassno6w64, with D = %llu\n", D);
+#ifdef DEBUG
+  printf("In hclassno6w64, with D = %llu\n", D);
+#endif // DEBUG
   W64 z = (W64)cache_get(cache_H, D);
-  // printf("From cache got z = H(D) = %lu\n", z); 
+#ifdef DEBUG
+  printf("From cache got z = H(D) = %llu\n", z);
+#endif // DEBUG
   Z64 D0;
   long F;
   if (z) return z;
   D0 = mycoredisc2neg(D, &F);
-  // printf("Fundamental disc = D0 = %ld, F = %ld\n", D0, F);
+#ifdef DEBUG
+  printf("Fundamental disc = D0 = %lld, F = %ld\n", D0, F);
+#endif // DEBUG
   return hclassno6u_2(D,D0,F);
 }
 
@@ -450,10 +460,14 @@ GEN polyGegenbauer(long k, GEN t, GEN m)
   GEN pol_quad = mkpoln(3,m,gneg(t),gen_1);
   GEN inv_pol = mkrfrac(pol_one, pol_quad);
   GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), (k-2) + 1);
-  // pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
-  // pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
+#ifdef DEBUG
+  pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
+  pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
+#endif // DEBUG
   GEN ret = truecoeff(inv_pol_ser, k-2);
-  // pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
+#ifdef DEBUG
+  pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
+#endif // DEBUG
   return ret;
 }
 
@@ -493,12 +507,18 @@ GEN traceAL(long N, long n, long k)
   GEN ret;
   GEN S1 = gen_0;
 
-  // printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
-  // pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
+#ifdef DEBUG
+  printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
+  pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
+#endif // DEBUG
   limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
-  // printf("limt = %ld\n", limt);
+#ifdef DEBUG
+  printf("limt = %ld\n", limt);
+#endif // DEBUG
   GEN div_nN = divisors(nN);
-  // pari_printf("div_nN = %Ps\n", div_nN);
+#ifdef DEBUG
+  pari_printf("div_nN = %Ps\n", div_nN);
+#endif // DEBUG
   GEN div_n = divisors(nn);
   GEN div_N = divisors(NN);
   long num_divs_nN = lg(div_nN);
@@ -509,7 +529,9 @@ GEN traceAL(long N, long n, long k)
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
     GEN t = gmul(NN, mksintn(1,tN));
-    // pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
+#ifdef DEBUG
+    pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
+#endif // DEBUG
     GEN t2 = gmul(t,t);
     GEN D = gsub(n4N, t2);
     // pari_printf("t = %Ps, D = %Ps, ", t, D);
@@ -520,30 +542,42 @@ GEN traceAL(long N, long n, long k)
       if (gmod(D,u2) == gen_0) {
 	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
       }
-      // pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
+#ifdef DEBUG
+      pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
+#endif // DEBUG
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
     S1 = gadd(S1, inner_sum_t);
   }
-  
-  // pari_printf("Sum of class numbers is: %Ps\n", S1);
+
+#ifdef DEBUG
+  pari_printf("Sum of class numbers is: %Ps\n", S1);
+#endif // DEBUG
   GEN S2 = gen_0;
 
-  // printf("num_divs_nN = %ld\n", num_divs_nN);
+#ifdef DEBUG
+  printf("num_divs_nN = %ld\n", num_divs_nN);
+#endif // DEBUG
   for (long idx = 1; idx < num_divs_nN; idx++)
-  {
-    // pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
+    {
+#ifdef DEBUG
+    pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
+#endif // DEBUG
     GEN d = gel(div_nN, idx);
     GEN a = gdivent(nN, d);
     if (gmod(gadd(a,d), NN) == gen_0)
     {
-      // printf("Adding to S2...\n");
+#ifdef DEBUG
+      printf("Adding to S2...\n");
+#endif // DEBUG
       S2 = gadd(S2, powgi(gmin(a,d), mkintn(1,k-1)));
     }
   }
 
-  // pari_printf("Sum of divisors is: %Ps\n", S2);
+#ifdef DEBUG
+  pari_printf("Sum of divisors is: %Ps\n", S2);
+#endif // DEBUG
   S2 = gmulgs(S2, 12*phi);
   S2 = gdivgs(S2, N);
   S2 = gdiv(S2, denom);
@@ -580,7 +614,9 @@ GEN traceALNewTrivial(long N, long k)
     trace = gadd(trace, gmulsg(moebius(D),traceAL(N_div_d2, 1, k)));
   }
 
-  // pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
+#ifdef DEBUG
+  pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
+#endif // DEBUG
   
   return trace;
 }
@@ -601,7 +637,9 @@ GEN traceALNewTrivialContribution(long N, long p, long k)
     if (! issquare(mkintn(1,p*N_div_d)) ) continue;
     trace2 = gadd(trace2, traceALNewTrivial(d, k));
   }
-  // pari_printf("Contribution from N2 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace2);
+#ifdef DEBUG
+  pari_printf("Contribution from N2 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace2);
+#endif // DEBUG
 
   if (N % p == 0) {
     long N_div_p = N / p;
@@ -613,13 +651,17 @@ GEN traceALNewTrivialContribution(long N, long p, long k)
       trace3 = gadd(trace3, traceALNewTrivial(d, k));
     }
   }
-  // pari_printf("Contribution from N3 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace3);
+#ifdef DEBUG
+  pari_printf("Contribution from N3 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace3);
+#endif // DEBUG
   
   // Since p is at most one word length, we can estimate the size of its powers accordingly
   trace = gsub(gmul(gpow(mkintn(1,p), mkintn(1,k/2), k/2), trace3),
 	       gmul(gpow(mkintn(1,p), mkintn(1,k/2-1), k/2-1), trace2));
 
-  // pari_printf("Trivial contribution from level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace);
+#ifdef DEBUG
+  pari_printf("Trivial contribution from level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace);
+#endif // DEBUG
   return trace;
 }
 
@@ -631,26 +673,32 @@ GEN traceALNew(long N, long p, long k)
   GEN div_N = divisors(NN);
   long num_divs_N = lg(div_N);
 
-  // printf("In traceALNew with N = %ld.\n", N);
+#ifdef DEBUG
+  printf("In traceALNew with N = %ld.\n", N);
+#endif // DEBUG
   
   for (long idx = 1; idx < num_divs_N; idx++) {
     GEN D = gel(div_N, idx);
     GEN D2 = gmul(D,D);
 
-    // pari_printf("D = %Ps \n", D);
-    // pari_printf("N mod (D^2) = %Ps \n", gmod(NN,D2));
-    // printf("(N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != 0));
-    // printf("gen_0 (N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != gen_0));
-    // printf("cmp (N mod (D^2) != 0) = %d \n", gcmp(gmod(NN,D2),gen_0));
-    // printf("gtos(D) mod p = %ld\n", gtos(D) % p);
-    // printf("(gtos(D) mod p == 0) =  %d\n", gtos(D) % p == 0);
+#ifdef DEBUG
+    pari_printf("D = %Ps \n", D);
+    pari_printf("N mod (D^2) = %Ps \n", gmod(NN,D2));
+    printf("(N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != 0));
+    printf("gen_0 (N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != gen_0));
+    printf("cmp (N mod (D^2) != 0) = %d \n", gcmp(gmod(NN,D2),gen_0));
+    printf("gtos(D) mod p = %ld\n", gtos(D) % p);
+    printf("(gtos(D) mod p == 0) =  %d\n", gtos(D) % p == 0);
+#endif // DEBUG
     
     if (gmod(NN, D2) != gen_0) continue;
     if (gtos(D) % p == 0) continue;
     
     long N_div_d2 = gtos(gdivent(NN, D2));
     trace = gadd(trace, gmulsg(moebius(D), gsub(traceAL(N_div_d2,p,k), traceALNewTrivialContribution(N_div_d2,p,k))));
-    // pari_printf("Accumulated trace is: %Ps \n", trace);
+#ifdef DEBUG
+    pari_printf("Accumulated trace is: %Ps \n", trace);
+#endif // DEBUG
   }
   
   return trace;
@@ -668,8 +716,9 @@ GEN traceALprimes(long N, long k, long prec, int newspace, long start)
   GEN (*trace_func)(long, long, long);
   trace_func = (newspace ? &traceALNew : &traceAL);
 
-  // printf("In traceALprimes. num_primes = %ld. newspace = %d. start = %ld. \n", num_primes, newspace, start);
-  // printf("trace_func = %x.\n", (unsigned int)trace_func);
+#ifdef DEBUG
+  printf("In traceALprimes. num_primes = %ld. newspace = %d. start = %ld. \n", num_primes, newspace, start);
+#endif // DEBUG
 
   gel(res, 1) = (newspace ? traceALNewTrivial(N,k) : traceAL(N,1,k));
   
@@ -729,8 +778,10 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
 
   char filename[80];
   FILE* outfile;
-  
-  // printf("In timeTraceAL, with upTo = %ld\n", upTo);
+
+#ifdef DEBUG
+  printf("In timeTraceAL, with upTo = %ld\n", upTo);
+#endif // DEBUG
   
   for (long N = from; N < upTo; N++) 
   {
@@ -738,7 +789,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     snprintf(filename, 30, "data/traces_%ld_%ld.m", k, N);
-    // printf("output directed to file %s\n", filename);
+#ifdef DEBUG
+    printf("output directed to file %s\n", filename);
+#endif // DEBUG
     if (num_traces == -1) {
       prec = maxuu((k*N+11) / 12, 1000);
       prec = maxuu(prec, 30*sqrt(N));
@@ -746,8 +799,6 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     else {
       prec = num_traces;
     }
-    
-    //    printf("p = %ld, prec = %ld\n", p, prec);
     if (only_primes)
       res = traceALprimes(N, k, prec+1, newspace, start);
     else
@@ -760,7 +811,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       f = mftraceform(NK,1);
       all_coefs = mfcoefs(f, prec, 1);
       coefs = cgetg(prec+1-start, t_VEC);
-      // printf("getting trace form coefficients, start = %ld...\n", start);
+#ifdef DEBUG
+      printf("getting trace form coefficients, start = %ld...\n", start);
+#endif // DEBUG
       for (long i = start+1; i <= prec; i++) {
 	gel(coefs, i-start) = gel(all_coefs, i);
       }
@@ -775,6 +828,8 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       //pari_printf("traces := %Ps;\ntracesAL := %Ps;\n", coefs, res);
     fclose(outfile);
   }
-  // printf("Finished.\n");
+#ifdef DEBUG
+  printf("Finished.\n");
+#endif // DEBUG
   return time(NULL) - start_time;
 }
