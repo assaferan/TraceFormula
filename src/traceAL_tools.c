@@ -513,13 +513,13 @@ GEN traceAL(long N, long n, long k)
   pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
   // #endif // DEBUG
   limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   printf("limt = %ld\n", limt);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   GEN div_nN = divisors(nN);
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   pari_printf("div_nN = %Ps\n", div_nN);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   GEN div_n = divisors(nn);
   GEN div_N = divisors(NN);
   long num_divs_nN = lg(div_nN);
@@ -530,12 +530,14 @@ GEN traceAL(long N, long n, long k)
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
     GEN t = gmul(NN, mksintn(1,tN));
-#ifdef DEBUG_LEVEL_FULL
+    // #ifdef DEBUG_LEVEL_FULL
     pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
-#endif // DEBUG_LEVEL_FULL
+    // #endif // DEBUG_LEVEL_FULL
     GEN t2 = gmul(t,t);
     GEN D = gsub(n4N, t2);
-    // pari_printf("t = %Ps, D = %Ps, ", t, D);
+    // #ifdef DEBUG_LEVEL_FULL
+    pari_printf("t = %Ps, D = %Ps, ", t, D);
+    // #endif // DEBUG_LEVEL_FULL
     GEN inner_sum_t = gen_0;
     for (long idx = 1; idx < num_divs_N; idx++) {
       GEN u = gel(div_N, idx);
@@ -543,42 +545,42 @@ GEN traceAL(long N, long n, long k)
       if (gmod(D,u2) == gen_0) {
 	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
       }
-#ifdef DEBUG_LEVEL_FULL
+      //#ifdef DEBUG_LEVEL_FULL
       pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
-#endif // DEBUG_LEVEL_FULL
+      // #endif // DEBUG_LEVEL_FULL
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
     S1 = gadd(S1, inner_sum_t);
   }
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   pari_printf("Sum of class numbers is: %Ps\n", S1);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   GEN S2 = gen_0;
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   printf("num_divs_nN = %ld\n", num_divs_nN);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   for (long idx = 1; idx < num_divs_nN; idx++)
     {
-#ifdef DEBUG_LEVEL_FULL
+      // #ifdef DEBUG_LEVEL_FULL
     pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
-#endif // DEBUG
+    // #endif // DEBUG
     GEN d = gel(div_nN, idx);
     GEN a = gdivent(nN, d);
     if (gmod(gadd(a,d), NN) == gen_0)
     {
-#ifdef DEBUG_LEVEL_FULL
+      // #ifdef DEBUG_LEVEL_FULL
       printf("Adding to S2...\n");
-#endif // DEBUG_LEVEL_FULL
+      // #endif // DEBUG_LEVEL_FULL
       S2 = gadd(S2, powgi(gmin(a,d), mkintn(1,k-1)));
     }
   }
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   pari_printf("Sum of divisors is: %Ps\n", S2);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   S2 = gmulgs(S2, 12*phi);
   S2 = gdivgs(S2, N);
   S2 = gdiv(S2, denom);
