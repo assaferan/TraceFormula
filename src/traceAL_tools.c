@@ -674,9 +674,9 @@ GEN traceALNew(long N, long p, long k)
   GEN div_N = divisors(NN);
   long num_divs_N = lg(div_N);
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG_LEVEL_FULL
   printf("In traceALNew with N = %ld.\n", N);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG_LEVEL_FULL
   
   for (long idx = 1; idx < num_divs_N; idx++) {
     GEN D = gel(div_N, idx);
