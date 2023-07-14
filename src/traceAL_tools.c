@@ -461,14 +461,14 @@ GEN polyGegenbauer(long k, GEN t, GEN m)
   GEN pol_quad = mkpoln(3,m,gneg(t),gen_1);
   GEN inv_pol = mkrfrac(pol_one, pol_quad);
   GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), (k-2) + 1);
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
   pari_printf("poly Gegenbauer = %Ps\n", inv_pol_ser);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   GEN ret = truecoeff(inv_pol_ser, k-2);
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("poly Gegenbauer coeff = %Ps\n", ret);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   return ret;
 }
 
@@ -682,7 +682,7 @@ GEN traceALNew(long N, long p, long k)
     GEN D = gel(div_N, idx);
     GEN D2 = gmul(D,D);
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("D = %Ps \n", D);
     pari_printf("N mod (D^2) = %Ps \n", gmod(NN,D2));
     printf("(N mod (D^2) != 0) = %d \n", (gmod(NN,D2) != 0));
@@ -690,16 +690,16 @@ GEN traceALNew(long N, long p, long k)
     printf("cmp (N mod (D^2) != 0) = %d \n", gcmp(gmod(NN,D2),gen_0));
     printf("gtos(D) mod p = %ld\n", gtos(D) % p);
     printf("(gtos(D) mod p == 0) =  %d\n", gtos(D) % p == 0);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
     
     if (gmod(NN, D2) != gen_0) continue;
     if (gtos(D) % p == 0) continue;
     
     long N_div_d2 = gtos(gdivent(NN, D2));
     trace = gadd(trace, gmulsg(moebius(D), gsub(traceAL(N_div_d2,p,k), traceALNewTrivialContribution(N_div_d2,p,k))));
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("Accumulated trace is: %Ps \n", trace);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   }
   
   return trace;
