@@ -432,12 +432,13 @@ long H12(GEN D)
   printf("D mod 4 = %ld\n", gtos(gmod(D,mkintn(1,4))));
   GEN uu;
   long u;
+  long Dmod4 = gtos(gmod(D,mkintn(1,4)));
   if (D == gen_0) return -1;
   if (D > gen_0)
-    switch (gtos(gmod(D,mkintn(1,4)))) {
+    switch (Dmod4) {
     case 0:
     case 3:
-      printf("entering hclassno6w64\n");
+      // printf("entering hclassno6w64\n");
       return 2*hclassno6w64(gtoW64(D));
     case 1:
     case 2:
