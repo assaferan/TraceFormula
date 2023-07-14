@@ -3,7 +3,6 @@
 
 #include "traceAL_tools.h"
 
-
 /*
 GP;install("traceAL", "GG&&", "traceAL", "./libtraceal.so");
 */
@@ -47,13 +46,13 @@ static void cache_set(long id, GEN S)
 
 /* handle a cache miss: store stats, possibly reset table; return value
  * if (now) cached; return NULL on failure. HACK: some caches contain an
- * W64 where the 0 value is impossible, and return it (typecast to GEN) */
-static GEN cache_get(long id, W64 D)
+ * ulong where the 0 value is impossible, and return it (typecast to GEN) */
+static GEN cache_get(long id, ulong D)
 {
   // printf("In cache_get, with id = %ld, D = %lu\n", id, D);
   cache *S = &caches[id];
-  const W64 d = S->compressed? D>>1: D;
-  W64 max, l;
+  const ulong d = S->compressed? D>>1: D;
+  ulong max, l;
 
    if (!S->cache)
   {
@@ -288,7 +287,7 @@ static GEN myfactoru(long N)
 }
 
 /* write n = mf^2. Return m, set f. */
-static W64 mycore(W64 n, long *pf)
+static ulong mycore(ulong n, long *pf)
 {
   pari_sp av = avma;
   GEN fa = myfactoru(n), P = gel(fa,1), E = gel(fa,2);
@@ -303,20 +302,20 @@ static W64 mycore(W64 n, long *pf)
 }
 
 /* write -n = Df^2, D < 0 fundamental discriminant. Return D, set f. */
-static Z64 mycoredisc2neg(W64 n, long *pf)
+static long mycoredisc2neg(ulong n, long *pf)
 {
-  W64 m, D = (W64)cache_get(cache_D, n);
-  if (D) { *pf = usqrt(n/D); return -(Z64)D; }
+  ulong m, D = (ulong)cache_get(cache_D, n);
+  if (D) { *pf = usqrt(n/D); return -(long)D; }
   m = mycore(n, pf);
   if ((m&3) != 3) { m <<= 2; *pf >>= 1; }
-  return (Z64)-m;
+  return (long)-m;
 }
 
 /* 1+p+...+p^e, e >= 1 */
-static W64 usumpow(W64 p, Z64 e)
+static ulong usumpow(ulong p, long e)
 {
-  W64 q = 1+p;
-  Z64 i;
+  ulong q = 1+p;
+  long i;
   for (i = 1; i < e; i++) q = p*q + 1;
   return q;
 }
@@ -340,10 +339,10 @@ static long get_sh(long F, long D0)
 
 /* d > 0, d = 0,3 (mod 4). Return 6*hclassno(d); -d must be fundamental
  * Faster than quadclassunit up to 5*10^5 or so */
-static ulong hclassno6u_count(W64 d)
+static ulong hclassno6u_count(ulong d)
 {
-  W64 a, b, b2, h = 0;
-  Z64 f = 0;
+  ulong a, b, b2, h = 0;
+  int f = 0;
 
   if (d > 500000)
     return 6 * itou(gel(quadclassunit0(utoineg(d), 0, NULL, 0), 1));
@@ -370,14 +369,14 @@ static ulong hclassno6u_count(W64 d)
 }
 
 /* D > 0; 6 * hclassno(D), using D = D0*F^2 */
-static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
+static long hclassno6u_2(ulong D, long D0, long F)
 {
   long h;
   // printf("In hclassno6u_2, with D = %lu, D0 = %lu, F = %lu\n", D, D0, F);
   if (F == 1) h = hclassno6u_count(D);
   else
   { /* second chance */
-    h = (W64)cache_get(cache_H, -D0);
+    h = (ulong)cache_get(cache_H, -D0);
     if (!h) h = hclassno6u_count(-D0);
     h *= get_sh(F,D0);
   }
@@ -386,48 +385,34 @@ static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
 
 /* D > 0; 6 * hclassno(D) (6*Hurwitz). Beware, cached value for D (=0,3 mod 4)
  * is stored at D>>1 */
-ulong hclassno6w64(W64 D)
+ulong hclassno6u(ulong D)
 {
-  // printf("In hclassno6w64, with D = %llu\n", D);
-  W64 z = (W64)cache_get(cache_H, D);
+  // printf("In hclassno6u, with D = %lu\n", D);
+  ulong z = (ulong)cache_get(cache_H, D);
   // printf("From cache got z = H(D) = %lu\n", z); 
-  Z64 D0;
-  long F;
+  long D0, F;
   if (z) return z;
   D0 = mycoredisc2neg(D, &F);
   // printf("Fundamental disc = D0 = %ld, F = %ld\n", D0, F);
   return hclassno6u_2(D,D0,F);
 }
 
-W64 gtoW64(GEN D)
-{
-  GEN M = powgi(mkintn(1,2), mkintn(1,32));
-  GEN D_L = gmod(D,M);
-  GEN D_H = gdivent(D,M);
-  
-  W64 ret = gtou(D_H);
-  ret <<= 32;
-  ret |= gtou(D_L);
-  return ret;
-}
-
 // returns 12*H
-long H12(GEN D)
+long H12(long D)
 {
-  // !! TODO - There might be an overflow here - try to fix that!
   GEN uu;
   long u;
-  if (D == gen_0) return -1;
-  if (D > gen_0)
-    switch (gtos(gmod(D,mkintn(1,4)))) {
-    case 0:
-    case 3:
-      return 2*hclassno6w64(gtoW64(D));
-    case 1:
-    case 2:
-      return 0;
+  if (D == 0) return -1;
+  if (D > 0)
+    switch (D % 4) {
+      case 0:
+      case 3:
+        return 2*hclassno6u(D);
+      case 1:
+      case 2:
+        return 0;
     }
-  long is_sq = issquareall(gneg(D), &uu);
+  long is_sq = issquareall(mkintn(1,-D), &uu);
   u = gtos(uu);
   return (is_sq ? -6*u : 0); 
 }
@@ -444,10 +429,10 @@ GEN mksintn(long l, long x)
   return res;
 }
 
-GEN polyGegenbauer(long k, GEN t, GEN m)
+GEN polyGegenbauer(long k, long t, long m)
 {
   GEN pol_one = mkpoln(1,gen_1);
-  GEN pol_quad = mkpoln(3,m,gneg(t),gen_1);
+  GEN pol_quad = mkpoln(3,mkintn(1,m),mksintn(1,-t),gen_1);
   GEN inv_pol = mkrfrac(pol_one, pol_quad);
   GEN inv_pol_ser = Ser0(inv_pol, -1, mkintn(1,(k-2) + 1), (k-2) + 1);
   // pari_printf("poly Gegenbauer = %Ps\n", inv_pol);
@@ -481,12 +466,8 @@ long alpha(ulong n)
 
 GEN traceAL(long N, long n, long k)
 {
-  GEN NN = mkintn(1,N);
-  GEN nn = mkintn(1,n); 
-  // const long nN = n*N;
-  GEN nN = gmul(NN, nn); 
-  //  const long n4N = nN << 2;
-  GEN n4N = gmul(nN,mkintn(1,4));
+  const long nN = n*N;
+  const long n4N = nN << 2;
 
   // Cohen does something wiser - see if it works here
   long limt, tN;
@@ -494,33 +475,30 @@ GEN traceAL(long N, long n, long k)
   GEN S1 = gen_0;
 
   // printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
-  // pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
-  limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
+  limt = usqrt(n4N) / N;
   // printf("limt = %ld\n", limt);
-  GEN div_nN = divisors(nN);
+  GEN div_nN = divisors(mkintn(1,nN));
   // pari_printf("div_nN = %Ps\n", div_nN);
-  GEN div_n = divisors(nn);
-  GEN div_N = divisors(NN);
+  GEN div_n = divisors(mkintn(1,n));
+  GEN div_N = divisors(mkintn(1,N));
   long num_divs_nN = lg(div_nN);
   long num_divs_n = lg(div_n);
   long num_divs_N = lg(div_N);
-  long phi = gtos(eulerphi(NN));
-  GEN denom = powgi(NN, mkintn(1,(k/2)-1));
+  long phi = gtos(eulerphi(mkintn(1,N)));
+  GEN denom = powgi(mkintn(1,N), mkintn(1,(k/2)-1));
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
-    GEN t = gmul(NN, mksintn(1,tN));
-    // pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
-    GEN t2 = gmul(t,t);
-    GEN D = gsub(n4N, t2);
-    // pari_printf("t = %Ps, D = %Ps, ", t, D);
+    long t = tN*N;
+    long t2 = t*t, D = n4N - t2;
+    // printf("t = %ld, D = %ld, ", t, D);
     GEN inner_sum_t = gen_0;
     for (long idx = 1; idx < num_divs_N; idx++) {
-      GEN u = gel(div_N, idx);
-      GEN u2 = gmul(u,u);
-      if (gmod(D,u2) == gen_0) {
-	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
-      }
-      // pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
+       ulong u = gtos(gel(div_N, idx));
+       ulong u2 = u*u;
+       if (D % u2 == 0) {
+	 inner_sum_t = gaddgs(inner_sum_t, moebius(mkintn(1,u))*H12(D / u2));
+       }
+       // printf("u = %ld, H12(D / u^2) = %ld\n", u, H12(D / u2));
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
@@ -534,12 +512,11 @@ GEN traceAL(long N, long n, long k)
   for (long idx = 1; idx < num_divs_nN; idx++)
   {
     // pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
-    GEN d = gel(div_nN, idx);
-    GEN a = gdivent(nN, d);
-    if (gmod(gadd(a,d), NN) == gen_0)
+    ulong d = gtos(gel(div_nN, idx));
+    ulong a = nN / d;
+    if ((a+d) % N == 0)
     {
-      // printf("Adding to S2...\n");
-      S2 = gadd(S2, powgi(gmin(a,d), mkintn(1,k-1)));
+      S2 = gadd(S2, powgi(mkintn(1,minuu(a,d)), mkintn(1,k-1)));
     }
   }
 
@@ -557,7 +534,7 @@ GEN traceAL(long N, long n, long k)
       {
 	GEN d = gel(div_n, idx);
 	if (ugcd(N,gtos(d)) == 1)
-	  ret = gadd(ret, gdiv(nn,d));
+	  ret = gadd(ret, gdiv(mkintn(1,n),d));
       }
   }
   return ret;
@@ -656,9 +633,9 @@ GEN traceALNew(long N, long p, long k)
   return trace;
 }
 
-GEN traceALprimes(long N, long k, long prec, int newspace, long start)
+GEN traceALprimes(long N, long k, long prec, int newspace)
 {
-  GEN p_list = primes0(mkvec2(mkintn(1,start), nextprime(mkintn(1,prec))));
+  GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
   // adding also the trace for T_1 = 1
   // GEN res = cgetg(num_primes-1, t_VEC);
@@ -668,7 +645,7 @@ GEN traceALprimes(long N, long k, long prec, int newspace, long start)
   GEN (*trace_func)(long, long, long);
   trace_func = (newspace ? &traceALNew : &traceAL);
 
-  // printf("In traceALprimes. num_primes = %ld. newspace = %d. start = %ld. \n", num_primes, newspace, start);
+  // printf("In traceALprimes. num_primes = %ld. newspace = %d. \n", num_primes, newspace);
   // printf("trace_func = %x.\n", (unsigned int)trace_func);
 
   gel(res, 1) = (newspace ? traceALNewTrivial(N,k) : traceAL(N,1,k));
@@ -682,9 +659,9 @@ GEN traceALprimes(long N, long k, long prec, int newspace, long start)
   return res;
 }
 
-GEN trace_primes(long N, long k, long prec, int newspace, long start)
+GEN trace_primes(long N, long k, long prec, int newspace)
 {
-  GEN p_list = primes0(mkvec2(mkintn(1,start), nextprime(mkintn(1,prec))));
+  GEN p_list = primes0(mkvec2(mkintn(1,1), nextprime(mkintn(1,prec))));
   long num_primes = lg(p_list);
   // adding trace of the identity (dimension of the space)
   // GEN res = cgetg(num_primes-1, t_VEC);
@@ -704,28 +681,23 @@ GEN trace_primes(long N, long k, long prec, int newspace, long start)
   return res;
 }
 
-GEN traceALupto(long N, long k, long prec, long start)
+GEN traceALupto(long N, long k, long prec)
 {
-  GEN res = cgetg(prec+1-start, t_VEC);
-  long i = 1;
-  
-  if (start == 0) {
-    // We add a 0 in the beginning to align with mfcoefs
-    gel(res, i) = gen_0;
-    i++;
-  }
-  for (; i <= prec; i++)
-    gel(res, i) = traceAL(N, i+start-1, k);
+  GEN res = cgetg(prec+1, t_VEC);
+  // We add a 0 in the beginning to align with mfcoefs
+  gel(res, 1) = gen_0;
+  for (long i = 2; i <= prec; i++)
+    gel(res, i) = traceAL(N, i-1, k);
 
   return res;
 }
 
-time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes, int newspace, long start)
+time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_primes, int newspace)
 {
-  time_t start_time = time(NULL);
+  time_t start = time(NULL);
   long prec;
   GEN NK;
-  GEN res, f, coefs, all_coefs;
+  GEN res, f, coefs;
 
   char filename[80];
   FILE* outfile;
@@ -747,23 +719,18 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       prec = num_traces;
     }
     
-    //    printf("p = %ld, prec = %ld\n", p, prec);
+    // printf("p = %ld, prec = %ld\n", p, prec);
     if (only_primes)
-      res = traceALprimes(N, k, prec+1, newspace, start);
+      res = traceALprimes(N, k, prec+1, newspace);
     else
-      res = traceALupto(N, k, prec+1, start);
+      res = traceALupto(N, k, prec+1);
 
     if (only_primes)
-      coefs = trace_primes(N, k, prec+1, newspace, start);
+      coefs = trace_primes(N, k, prec+1, newspace);
     else {
       NK = mkvec2(mkintn(1,N),mkintn(1,k));
       f = mftraceform(NK,1);
-      all_coefs = mfcoefs(f, prec, 1);
-      coefs = cgetg(prec+1-start, t_VEC);
-      // printf("getting trace form coefficients, start = %ld...\n", start);
-      for (long i = start+1; i <= prec; i++) {
-	gel(coefs, i-start) = gel(all_coefs, i);
-      }
+      coefs = mfcoefs(f, prec, 1);
     }
     outfile = fopen(filename, "w");
     if (outfile == NULL)
@@ -776,5 +743,5 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     fclose(outfile);
   }
   // printf("Finished.\n");
-  return time(NULL) - start_time;
+  return time(NULL) - start;
 }

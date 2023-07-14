@@ -23,4 +23,3 @@ configure
 ltmain.sh
 *.sig
 Tests/*.sig
-.magma-scan

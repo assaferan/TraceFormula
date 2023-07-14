@@ -33,7 +33,7 @@ main(int argc, char* argv[])
   }
   
   pari_init(10000000000,2);
-  timeTraceAL(upto, from, k, num_traces, only_primes, newspace, 0);
+  timeTraceAL(upto, from, k, num_traces, only_primes, newspace);
   // printf("took %ld seconds\n", timing);
   pari_close_mf();
   pari_close();
