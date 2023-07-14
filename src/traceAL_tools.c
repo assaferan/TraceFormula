@@ -794,10 +794,12 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     printf("output directed to file %s\n", filename);
     // #endif // DEBUG
     if (num_traces == -1) {
+      printf("before maxuu");
       prec = maxuu((k*N+11) / 12, 1000);
       prec = maxuu(prec, 30*sqrt(N));
     }
     else {
+      printf("setting prec");
       prec = num_traces;
     }
     printf("before traceAL");
