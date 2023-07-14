@@ -508,18 +508,18 @@ GEN traceAL(long N, long n, long k)
   GEN ret;
   GEN S1 = gen_0;
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
   pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   printf("limt = %ld\n", limt);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   GEN div_nN = divisors(nN);
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("div_nN = %Ps\n", div_nN);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   GEN div_n = divisors(nn);
   GEN div_N = divisors(NN);
   long num_divs_nN = lg(div_nN);
@@ -530,9 +530,9 @@ GEN traceAL(long N, long n, long k)
   for (tN = -limt ; tN <= limt; tN++) /* t^2 < 4Nn */
   {
     GEN t = gmul(NN, mksintn(1,tN));
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("tN = %ld, NN = %Ps, t = %Ps\n", tN, NN, t);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
     GEN t2 = gmul(t,t);
     GEN D = gsub(n4N, t2);
     // pari_printf("t = %Ps, D = %Ps, ", t, D);
@@ -543,42 +543,42 @@ GEN traceAL(long N, long n, long k)
       if (gmod(D,u2) == gen_0) {
 	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
       }
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
       pari_printf("u = %Ps, H12(D / u^2) = %ld\n", u, H12(gdivent(D,u2)));
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
     }
     inner_sum_t = gmul(inner_sum_t, polyGegenbauer(k,t,nN));
     inner_sum_t = gdiv(inner_sum_t, denom);
     S1 = gadd(S1, inner_sum_t);
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Sum of class numbers is: %Ps\n", S1);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   GEN S2 = gen_0;
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   printf("num_divs_nN = %ld\n", num_divs_nN);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   for (long idx = 1; idx < num_divs_nN; idx++)
     {
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
     pari_printf("div_nN[%ld] = %Ps\n", idx, gel(div_nN,idx));
 #endif // DEBUG
     GEN d = gel(div_nN, idx);
     GEN a = gdivent(nN, d);
     if (gmod(gadd(a,d), NN) == gen_0)
     {
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
       printf("Adding to S2...\n");
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
       S2 = gadd(S2, powgi(gmin(a,d), mkintn(1,k-1)));
     }
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Sum of divisors is: %Ps\n", S2);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   S2 = gmulgs(S2, 12*phi);
   S2 = gdivgs(S2, N);
   S2 = gdiv(S2, denom);
@@ -615,9 +615,9 @@ GEN traceALNewTrivial(long N, long k)
     trace = gadd(trace, gmulsg(moebius(D),traceAL(N_div_d2, 1, k)));
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   
   return trace;
 }
@@ -638,9 +638,9 @@ GEN traceALNewTrivialContribution(long N, long p, long k)
     if (! issquare(mkintn(1,p*N_div_d)) ) continue;
     trace2 = gadd(trace2, traceALNewTrivial(d, k));
   }
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Contribution from N2 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace2);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
 
   if (N % p == 0) {
     long N_div_p = N / p;
@@ -652,17 +652,17 @@ GEN traceALNewTrivialContribution(long N, long p, long k)
       trace3 = gadd(trace3, traceALNewTrivial(d, k));
     }
   }
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Contribution from N3 for level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace3);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   
   // Since p is at most one word length, we can estimate the size of its powers accordingly
   trace = gsub(gmul(gpow(mkintn(1,p), mkintn(1,k/2), k/2), trace3),
 	       gmul(gpow(mkintn(1,p), mkintn(1,k/2-1), k/2-1), trace2));
 
-#ifdef DEBUG
+#ifdef DEBUG_LEVEL_FULL
   pari_printf("Trivial contribution from level %d for prime %d and weight %d is: %Ps \n", N, p, k, trace);
-#endif // DEBUG
+#endif // DEBUG_LEVEL_FULL
   return trace;
 }
 
