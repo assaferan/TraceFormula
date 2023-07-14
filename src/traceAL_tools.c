@@ -377,7 +377,7 @@ static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
 {
   long h;
 #ifdef DEBUG
-  printf("In hclassno6u_2, with D = %llu, D0 = %llu, F = %llu\n", D, D0, F);
+  printf("In hclassno6u_2, with D = %" PRId64 ", D0 = %" PRId64 ", F = %" PRId64 "\n", D, D0, F);
 #endif // DEBUG
   if (F == 1) h = hclassno6u_count(D);
   else
@@ -394,18 +394,18 @@ static long hclassno6u_2(W64 D, Z64 D0, Z64 F)
 ulong hclassno6w64(W64 D)
 {
 #ifdef DEBUG
-  printf("In hclassno6w64, with D = %llu\n", D);
+  printf("In hclassno6w64, with D = %" PRId64 "\n", D);
 #endif // DEBUG
   W64 z = (W64)cache_get(cache_H, D);
 #ifdef DEBUG
-  printf("From cache got z = H(D) = %llu\n", z);
+  printf("From cache got z = H(D) = %" PRId64 "\n", z);
 #endif // DEBUG
   Z64 D0;
   long F;
   if (z) return z;
   D0 = mycoredisc2neg(D, &F);
 #ifdef DEBUG
-  printf("Fundamental disc = D0 = %lld, F = %ld\n", D0, F);
+  printf("Fundamental disc = D0 = %" PRId64 ", F = %ld\n", D0, F);
 #endif // DEBUG
   return hclassno6u_2(D,D0,F);
 }
