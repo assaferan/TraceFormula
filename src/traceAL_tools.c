@@ -508,10 +508,10 @@ GEN traceAL(long N, long n, long k)
   GEN ret;
   GEN S1 = gen_0;
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
   pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
 #ifdef DEBUG_LEVEL_FULL
   printf("limt = %ld\n", limt);
