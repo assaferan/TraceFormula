@@ -615,9 +615,9 @@ GEN traceALNewTrivial(long N, long k)
     trace = gadd(trace, gmulsg(moebius(D),traceAL(N_div_d2, 1, k)));
   }
 
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG
   pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG
   
   return trace;
 }
@@ -794,15 +794,12 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     printf("output directed to file %s\n", filename);
     // #endif // DEBUG
     if (num_traces == -1) {
-      printf("before maxuu");
       prec = maxuu((k*N+11) / 12, 1000);
       prec = maxuu(prec, 30*sqrt(N));
     }
     else {
-      printf("setting prec");
       prec = num_traces;
     }
-    printf("before traceAL");
     if (only_primes)
       res = traceALprimes(N, k, prec+1, newspace, start);
     else
