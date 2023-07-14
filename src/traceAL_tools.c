@@ -425,12 +425,12 @@ W64 gtoW64(GEN D)
 // returns 12*H
 long H12(GEN D)
 {
-#ifdef DEBUG_LEVEL_FULL
+  // #ifdef DEBUG_LEVEL_FULL
   printf("In H12\n");
   pari_printf("D = %Ps\n", D);
   pari_printf("D mod 4 = %Ps\n", gmod(D,mkintn(1,4)));
   // printf("D mod 4 = %ld\n", gtos(gmod(D,mkintn(1,4))));
-#endif // DEBUG_LEVEL_FULL
+  // #endif // DEBUG_LEVEL_FULL
   GEN uu;
   long u;
   //  long Dmod4 = gtos(gmod(D,mkintn(1,4)));
