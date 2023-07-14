@@ -550,7 +550,9 @@ GEN traceAL(long N, long n, long k)
       GEN u = gel(div_N, idx);
       GEN u2 = gmul(u,u);
       if (gmod(D,u2) == gen_0) {
+#ifdef DEBUG_LEVEL_FULL
 	pari_printf("u = %Ps, u2 = %Ps, inner_sum_t = %Ps\n", u, u2, inner_sum_t);
+#endif // DEBUG_LEVEL_FULL
 	inner_sum_t = gaddgs(inner_sum_t, moebius(u)*H12(gdivent(D,u2)));
       }
 #ifdef DEBUG_LEVEL_FULL
