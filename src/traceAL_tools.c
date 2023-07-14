@@ -514,18 +514,18 @@ GEN traceAL(long N, long n, long k)
   GEN ret;
   GEN S1 = gen_0;
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   printf("In traceAL, k = %ld, N = %ld, n = %ld\n", k, N, n);
   pari_printf("n4N = %Ps, sqrt(n4N) = %Ps\n", n4N, gsqrt(n4N,3));
-  // #endif // DEBUG
+#endif // DEBUG
   limt = gtos(gdivent(gfloor(gsqrt(n4N,3)),NN));
-  // #ifdef DEBUG
+#ifdef DEBUG
   printf("limt = %ld\n", limt);
-  // #endif // DEBUG
+#endif // DEBUG
   GEN div_nN = divisors(nN);
-  // #ifdef DEBUG
+#ifdef DEBUG
   pari_printf("div_nN = %Ps\n", div_nN);
-  // #endif // DEBUG
+#endif // DEBUG
   GEN div_n = divisors(nn);
   GEN div_N = divisors(NN);
   long num_divs_nN = lg(div_nN);
@@ -561,14 +561,14 @@ GEN traceAL(long N, long n, long k)
     S1 = gadd(S1, inner_sum_t);
   }
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   pari_printf("Sum of class numbers is: %Ps\n", S1);
-  // #endif // DEBUG
+#endif // DEBUG
   GEN S2 = gen_0;
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   printf("num_divs_nN = %ld\n", num_divs_nN);
-  // #endif // DEBUG
+#endif // DEBUG
   for (long idx = 1; idx < num_divs_nN; idx++)
     {
 #ifdef DEBUG_LEVEL_FULL
@@ -585,9 +585,9 @@ GEN traceAL(long N, long n, long k)
     }
   }
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   pari_printf("Sum of divisors is: %Ps\n", S2);
-  // #endif // DEBUG
+#endif // DEBUG
   S2 = gmulgs(S2, 12*phi);
   S2 = gdivgs(S2, N);
   S2 = gdiv(S2, denom);
@@ -624,9 +624,9 @@ GEN traceALNewTrivial(long N, long k)
     trace = gadd(trace, gmulsg(moebius(D),traceAL(N_div_d2, 1, k)));
   }
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   pari_printf("Trace of W_{%Ps} on new subspace is: %Ps\n", NN, trace);
-  // #endif // DEBUG
+#endif // DEBUG
   
   return trace;
 }
@@ -683,9 +683,9 @@ GEN traceALNew(long N, long p, long k)
   GEN div_N = divisors(NN);
   long num_divs_N = lg(div_N);
 
-  // #ifdef DEBUG_LEVEL_FULL
+#ifdef DEBUG_LEVEL_FULL
   printf("In traceALNew with N = %ld.\n", N);
-  // #endif // DEBUG_LEVEL_FULL
+#endif // DEBUG_LEVEL_FULL
   
   for (long idx = 1; idx < num_divs_N; idx++) {
     GEN D = gel(div_N, idx);
@@ -726,9 +726,9 @@ GEN traceALprimes(long N, long k, long prec, int newspace, long start)
   GEN (*trace_func)(long, long, long);
   trace_func = (newspace ? &traceALNew : &traceAL);
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   printf("In traceALprimes. num_primes = %ld. newspace = %d. start = %ld. \n", num_primes, newspace, start);
-  // #endif // DEBUG
+#endif // DEBUG
 
   gel(res, 1) = (newspace ? traceALNewTrivial(N,k) : traceAL(N,1,k));
   
@@ -789,9 +789,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
   char filename[80];
   FILE* outfile;
 
-  // #ifdef DEBUG
+#ifdef DEBUG
   printf("In timeTraceAL, with upTo = %ld\n", upTo);
-  // #endif // DEBUG
+#endif // DEBUG
   
   for (long N = from; N < upTo; N++) 
   {
@@ -799,9 +799,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
     snprintf(filename, 30, "data/traces_%ld_%ld.m", k, N);
-    // #ifdef DEBUG
+#ifdef DEBUG
     printf("output directed to file %s\n", filename);
-    // #endif // DEBUG
+#endif // DEBUG
     if (num_traces == -1) {
       prec = maxuu((k*N+11) / 12, 1000);
       prec = maxuu(prec, 30*sqrt(N));
@@ -821,9 +821,9 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
       f = mftraceform(NK,1);
       all_coefs = mfcoefs(f, prec, 1);
       coefs = cgetg(prec+1-start, t_VEC);
-      // #ifdef DEBUG
+#ifdef DEBUG
       printf("getting trace form coefficients, start = %ld...\n", start);
-      // #endif // DEBUG
+#endif // DEBUG
       for (long i = start+1; i <= prec; i++) {
 	gel(coefs, i-start) = gel(all_coefs, i);
       }
