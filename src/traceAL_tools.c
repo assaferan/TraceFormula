@@ -429,6 +429,7 @@ long H12(GEN D)
   printf("In H12\n");
   pari_printf("D = %Ps\n", D);
   pari_printf("D mod 4 = %Ps\n", gmod(D,mkintn(1,4)));
+  printf("D mod 4 = %ld\n", gtos(gmod(D,mkintn(1,4))));
   GEN uu;
   long u;
   if (D == gen_0) return -1;
