@@ -422,6 +422,12 @@ W64 gtoW64(GEN D)
   return ret;
 }
 
+W64 gtoZ64(GEN D)
+{
+  Z64 ret = -gtoW64(gneg(D));
+  return ret;
+}
+
 // returns 12*H
 long H12(GEN D)
 {
@@ -446,7 +452,7 @@ long H12(GEN D)
       return 0;
     }
   long is_sq = issquareall(gneg(D), &uu);
-  u = gtoW64(uu);
+  u = gtoZ64(uu);
   return (is_sq ? -6*u : 0); 
 }
 
