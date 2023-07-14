@@ -1,4 +1,4 @@
-bin_PROGRAMS = traceAL_sta traceALbatch_sta traceAL_dyn traceALbatch_dyn
+bin_PROGRAMS = traceAL_sta traceALbatch_sta traceAL_dyn traceALbatch_dyn traceAL_sta_dbg traceALbatch_sta_dbg
 
 ALL_CFLAGS = -I. -I${PARI_PATH}/include -Wall -Werror -ffp-contract=off -fno-strict-aliasing
 
@@ -37,6 +37,9 @@ MODLDFLAGS = ${DLCFLAGS}
 traceAL_sta_SOURCES = traceAL.c traceAL_tools.c
 traceALbatch_sta_SOURCES = traceALbatch.c traceAL_tools.c
 
+traceAL_sta_dbg_SOURCES = traceAL.c traceAL_tools.c
+traceALbatch_sta_dbg_SOURCES = traceALbatch.c traceAL_tools.c
+
 traceAL_dyn_SOURCES = traceAL.c traceAL_tools.c
 traceALbatch_dyn_SOURCES = traceALbatch.c traceAL_tools.c
 
@@ -44,6 +47,11 @@ traceAL_sta_CFLAGS = ${OPT_CFLAGS}
 traceAL_sta_LDFLAGS = ${OPT_LD_FLAGS}
 traceALbatch_sta_CFLAGS = ${OPT_CFLAGS}
 traceALbatch_sta_LDFLAGS = ${OPT_LD_FLAGS}
+
+traceAL_sta_dbg_CFLAGS = ${DBG_CFLAGS}
+traceAL_sta_dbg_LDFLAGS = ${DBG_LD_FLAGS}
+traceALbatch_sta_dbg_CFLAGS = ${DBG_CFLAGS}
+traceALbatch_sta_dbg_LDFLAGS = ${DBG_LD_FLAGS}
 
 traceAL_dyn_CFLAGS = ${OPT_CFLAGS} ${DLCFLAGS}
 traceAL_dyn_LDFLAGS = ${OPT_LD_FLAGS} ${MODLDFLAGS}

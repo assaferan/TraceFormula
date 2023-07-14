@@ -737,7 +737,7 @@ time_t timeTraceAL(long upTo, long from, long k, long num_traces, int only_prime
     if (N == 0) continue;
     // p = gtos(gel(p_list, idx));
     // sprintf(p_str, "%d", p);
-    sprintf(filename, "data/traces_%ld_%ld.m", k, N);
+    snprintf(filename, 30, "data/traces_%ld_%ld.m", k, N);
     // printf("output directed to file %s\n", filename);
     if (num_traces == -1) {
       prec = maxuu((k*N+11) / 12, 1000);
