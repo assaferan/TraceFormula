@@ -446,7 +446,7 @@ long H12(GEN D)
       return 0;
     }
   long is_sq = issquareall(gneg(D), &uu);
-  u = gtos(uu);
+  u = gtoW64(uu);
   return (is_sq ? -6*u : 0); 
 }
 
