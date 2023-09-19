@@ -114,8 +114,10 @@ function TraceFormulaGamma0(n, N, k)
   max_abst := Floor(SquareRoot(4*n));
   for t in [-max_abst..max_abst] do
     for u in Divisors(N) do
-      if ((4*n-t^2) mod u^2 eq 0) then
-	S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
+	if ((4*n-t^2) mod u^2 eq 0) then
+	    print "u = ", u, "t = ", t;
+	    S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
+	    print "S1 = ", S1;
       end if;
     end for;
   end for;
@@ -124,6 +126,7 @@ function TraceFormulaGamma0(n, N, k)
     a := n div d;
     S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
   end for;
+  print "S2 = ", S2;
   ret := -S1 / 2 - S2 / 2;
   if k eq 2 then
      ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
@@ -133,6 +136,19 @@ end function;
 
 function PhiAL(N, a, d)
   return EulerPhi(N) / N;
+end function;
+
+function Phil(N, l, a, d)
+    l_prime := N div l;
+    ret := 0;
+    for r in Divisors(l_prime) do
+	s := l_prime div r;
+	g := GCD(r,s);
+	if (((a-d) mod g eq 0) and (GCD(a,r) eq 1) and (GCD(d,s) eq 1)) then
+	    ret +:= EulerPhi(g);
+	end if;
+    end for;
+    return EulerPhi(l) * ret / l;
 end function;
 
 function alpha(n)
@@ -215,11 +231,16 @@ function A1(n,N,k)
   return n^(k div 2 - 1)*phi1(N)*(k-1)/12;
 end function;
 
+function phi1(N)
+    return N * &*[ Rationals() | 1 + 1/p : p in PrimeDivisors(N)];
+end function;
+
 function mu(N,t,f,n)
   N_f := GCD(N,f);
   primes := [x[1] : x in Factorization(N) | (N div N_f) mod x[1] ne 0];
   s := #[x : x in [0..N-1] | (x^2 - t*x+n) mod (GCD(f*N, N^2)) eq 0];
   prod := IsEmpty(primes) select 1 else &*[ 1 + 1/p : p in  primes];
+  assert N_f * prod eq (phi1(N) / phi1(N div GCD(N,f)));
   return N_f * prod * s;
 end function;
 
@@ -238,10 +259,15 @@ function A2(n,N,k)
     for d in Divisors(4*n - t^2) do
       is_sq, f := IsSquare(d);
       if is_sq then
-        D := (t^2-4*n) div f^2;
-        h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
-        w := #UnitGroup(Integers(QuadraticField(D)));
-        t_sum +:= (h/w) * mu(N,t,f,n);
+          D := (t^2-4*n) div f^2;
+	  if D mod 4 in [0,1] then
+	      O := QuadraticOrder(BinaryQuadraticForms(D));
+              // h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
+	      h := #PicardGroup(O);
+	      w := #TorsionSubgroup(UnitGroup(O));
+              // w := #UnitGroup(Integers(QuadraticField(D)));
+              t_sum +:= (h/w) * mu(N,t,f,n);
+	  end if;
       end if;
     end for;
     ret -:= p*t_sum;
@@ -323,3 +349,52 @@ procedure testInverseRelationNewSubspaces(N, k, p)
     trace := &+[Integers() | MoebiusMu(m)*(get_trace(N div m^2, k, p) - TrivialContribution(N div m^2, k, p)) : m in ms];
     assert trace eq get_trace(N, k, p : New);
 end procedure;
+
+// Formula from Popa
+function TraceFormulaGamma0HeckeAL(N, k, n, Q)
+    assert k ge 2;
+    if (n eq 0) then return 0; end if; // for compatibility with q-expansions
+    S1 := 0;
+    Q_prime := N div Q;
+    assert GCD(Q, Q_prime) eq 1;
+    w := k - 2;
+    max_abst := Floor(SquareRoot(4*Q*n)) div Q;
+    for tQ in [-max_abst..max_abst] do
+	t := tQ*Q;
+	for u in Divisors(Q) do
+	    for u_prime in Divisors(Q_prime) do
+		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
+		    print "u =", u, " u_prime = ", u_prime, "t = ", t;
+		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*C(Q_prime,u_prime,t,Q*n)
+			   *MoebiusMu(u) / Q^(w div 2);
+		    print "S1 = ", S1;
+		end if;
+	    end for;
+	end for;
+    end for;
+    S2 := 0;
+    for d in Divisors(n*Q) do
+	a := n*Q div d;
+	if (a+d) mod Q eq 0 then
+	    print "a = ", a, "d = ", d;
+	    S2 +:= Minimum(a,d)^(k-1)*Phil(N,Q,a,d) / Q^(w div 2);
+	    print "S2 = ", S2;
+	end if;
+    end for;
+    print "S2 = ", S2;
+    ret := -S1 / 2 - S2 / 2;
+    if k eq 2 then
+	ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
+    end if;
+    return ret;
+end function;
+
+function get_trace_hecke_AL(N, k, n, Q : New := false)
+    C := CuspidalSubspace(ModularSymbols(N,k,1));
+    if New then
+	C := NewSubspace(C);
+    end if;
+    al := AtkinLehner(C,Q);
+    T := HeckeOperator(C,n);
+    return Trace(T*al);
+end function;
