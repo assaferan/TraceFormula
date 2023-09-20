@@ -37,7 +37,7 @@ end function;
 function S(N, u, t, n)
   assert N mod u eq 0;
   assert (t^2 - 4 * n) mod u^2 eq 0;
-  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
+  return [x : x in [1..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
 end function;
 
 function phi1(N)
@@ -115,9 +115,9 @@ function TraceFormulaGamma0(n, N, k)
   for t in [-max_abst..max_abst] do
     for u in Divisors(N) do
 	if ((4*n-t^2) mod u^2 eq 0) then
-	    print "u = ", u, "t = ", t;
+	    // print "u = ", u, "t = ", t;
 	    S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
-	    print "S1 = ", S1;
+	    // print "S1 = ", S1;
       end if;
     end for;
   end for;
@@ -126,7 +126,7 @@ function TraceFormulaGamma0(n, N, k)
     a := n div d;
     S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
   end for;
-  print "S2 = ", S2;
+  // print "S2 = ", S2;
   ret := -S1 / 2 - S2 / 2;
   if k eq 2 then
      ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
@@ -225,7 +225,7 @@ function TraceFormulaGamma0ALNew(p, N, k)
 end function;
 
 function A1(n,N,k)
-  if not IsSquare(n) then
+  if (not IsSquare(n)) or (GCD(n,N) ne 1) then
     return 0;
   end if;
   return n^(k div 2 - 1)*phi1(N)*(k-1)/12;
@@ -238,7 +238,7 @@ end function;
 function mu(N,t,f,n)
   N_f := GCD(N,f);
   primes := [x[1] : x in Factorization(N) | (N div N_f) mod x[1] ne 0];
-  s := #[x : x in [0..N-1] | (x^2 - t*x+n) mod (GCD(f*N, N^2)) eq 0];
+  s := #[x : x in [0..N-1] | (GCD(x,N) eq 1) and ((x^2 - t*x+n) mod (GCD(f*N, N^2)) eq 0)];
   prod := IsEmpty(primes) select 1 else &*[ 1 + 1/p : p in  primes];
   assert N_f * prod eq (phi1(N) / phi1(N div GCD(N,f)));
   return N_f * prod * s;
@@ -251,44 +251,52 @@ function A2(n,N,k)
   if IsSquare(n) then max_abst -:= 1; end if;
   ret := 0;
   for t in [-max_abst..max_abst] do
-    F<rho> := NumberField(x^2 - t*x+n);
-    rho_bar := t - rho;
-    p := Rationals()!((rho^(k-1) - rho_bar^(k-1)) / (rho - rho_bar));
-    assert p eq P(k,t,n);
-    t_sum := 0;
-    for d in Divisors(4*n - t^2) do
-      is_sq, f := IsSquare(d);
-      if is_sq then
-          D := (t^2-4*n) div f^2;
-	  if D mod 4 in [0,1] then
-	      O := QuadraticOrder(BinaryQuadraticForms(D));
-              // h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
-	      h := #PicardGroup(O);
-	      w := #TorsionSubgroup(UnitGroup(O));
-              // w := #UnitGroup(Integers(QuadraticField(D)));
-              t_sum +:= (h/w) * mu(N,t,f,n);
+      // print "t = ", t;
+      F<rho> := NumberField(x^2 - t*x+n);
+      rho_bar := t - rho;
+      p := Rationals()!((rho^(k-1) - rho_bar^(k-1)) / (rho - rho_bar));
+      assert p eq P(k,t,n);
+      t_sum := 0;
+      for d in Divisors(4*n - t^2) do
+	  is_sq, f := IsSquare(d);
+	  if is_sq then
+              D := (t^2-4*n) div f^2;
+	      if D mod 4 in [0,1] then
+		  O := QuadraticOrder(BinaryQuadraticForms(D));
+		  // h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
+		  h := #PicardGroup(O);
+		  w := #TorsionSubgroup(UnitGroup(O));
+		  // w := #UnitGroup(Integers(QuadraticField(D)));
+		  t_sum +:= (h/w) * mu(N,t,f,n);
+	      end if;
 	  end if;
-      end if;
-    end for;
-    ret -:= p*t_sum;
+      end for;
+      // print "t_sum = ", t_sum;
+      // print "p = ", p;
+      ret -:= p*t_sum;
+      // print "ret = ", ret;
   end for;
   return ret;
 end function;
 
 function A3(n,N,k)
   g := 1;
-  ds := [d : d in Divisors(N) | d^2 lt n];
+  ds := [d : d in Divisors(n) | d^2 lt n];
   ret := 0;
-  for d in ds do  
-    cs := [c : c in Divisors(N) |
-	     GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0];
-    ret -:= d^(k-1) * &+[EulerPhi(GCD(c, N div c)) : c in cs];
+  for d in ds do
+      // print "d = ", d;
+      cs := [c : c in Divisors(N) |
+	     (GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0)
+	    and (GCD(d mod c, c) eq 1) and (GCD((n div d) mod (N div c), (N div c)) eq 1)];
+      ret -:= d^(k-1) * &+[Integers() | EulerPhi(GCD(c, N div c)) : c in cs];
+      // print "ret = ", ret;
   end for;
   is_sq, d := IsSquare(n);
   if is_sq then
-    cs := [c : c in Divisors(N) |
-	     GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0];
-    ret -:= 1/2 * d^(k-1) * &+[EulerPhi(GCD(c, N div c)) : c in cs];
+      cs := [c : c in Divisors(N) |
+	     (GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0)
+	     and (GCD(d mod c, c) eq 1) and (GCD((n div d) mod (N div c), (N div c)) eq 1)];
+      ret -:= 1/2 * d^(k-1) * &+[Integers() | EulerPhi(GCD(c, N div c)) : c in cs];
   end if;
   return ret;
 end function;
@@ -364,10 +372,10 @@ function TraceFormulaGamma0HeckeAL(N, k, n, Q)
 	for u in Divisors(Q) do
 	    for u_prime in Divisors(Q_prime) do
 		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
-		    print "u =", u, " u_prime = ", u_prime, "t = ", t;
+		    // print "u =", u, " u_prime = ", u_prime, "t = ", t;
 		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*C(Q_prime,u_prime,t,Q*n)
 			   *MoebiusMu(u) / Q^(w div 2);
-		    print "S1 = ", S1;
+		    // print "S1 = ", S1;
 		end if;
 	    end for;
 	end for;
@@ -376,12 +384,12 @@ function TraceFormulaGamma0HeckeAL(N, k, n, Q)
     for d in Divisors(n*Q) do
 	a := n*Q div d;
 	if (a+d) mod Q eq 0 then
-	    print "a = ", a, "d = ", d;
+	    // print "a = ", a, "d = ", d;
 	    S2 +:= Minimum(a,d)^(k-1)*Phil(N,Q,a,d) / Q^(w div 2);
-	    print "S2 = ", S2;
+	    // print "S2 = ", S2;
 	end if;
     end for;
-    print "S2 = ", S2;
+    // print "S2 = ", S2;
     ret := -S1 / 2 - S2 / 2;
     if k eq 2 then
 	ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];

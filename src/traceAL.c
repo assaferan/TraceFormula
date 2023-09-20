@@ -1,6 +1,7 @@
 #include <pari/pari.h>
 #include <time.h>
 
+#include "mftrace.h"
 #include "traceAL_tools.h"
 
 int main(int argc, char* argv[])
@@ -40,6 +41,14 @@ int main(int argc, char* argv[])
   
   printf("single run took %ld seconds\n", time(NULL)-start);
   pari_printf("al = %Ps\n", al);
+
+  // GEN CHI = mfchartrivial();
+  // al = mftraceform_cusp(N, k, CHI);
+  GEN NK = mkvec2(mkintn(1,N),mkintn(1,k));
+  GEN f = mftraceform(NK,1);
+  GEN coefs = mfcoefs(f, prec, 1);
+  
+  pari_printf("coefs = %Ps\n", coefs);
   
   if (argc >= 6 + (1-newspace)) {
     from = atoi(argv[5 + (1 - newspace)]);
