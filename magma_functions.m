@@ -19,8 +19,6 @@ function Sfast(N, u, t, n)
           return 0;
         end if;
 	y_0 := y div p^e_y;
-// compare timings
-// is_sq := KroneckerSymbol(y_0,p);
         is_sq := IsSquare(Integers(p)!y_0);
         if not is_sq then
 	  return 0;
@@ -37,7 +35,7 @@ end function;
 function S(N, u, t, n)
   assert N mod u eq 0;
   assert (t^2 - 4 * n) mod u^2 eq 0;
-  return [x : x in [1..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
+  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
 end function;
 
 function phi1(N)
@@ -48,8 +46,8 @@ end function;
 
 function B(N, u, t, n)
 // assert Sfast(N,u,t,n) eq #S(N,u,t,n);
-//return #S(N,u,t,n) * phi1(N) div phi1(N div u);
-  return Sfast(N,u,t,n) * phi1(N) div phi1(N div u);  
+    return #S(N,u,t,n) * phi1(N) div phi1(N div u);
+  // return Sfast(N,u,t,n) * phi1(N) div phi1(N div u);  
 end function;
 
 function C(N, M)
@@ -94,7 +92,7 @@ function Phi(N, a, d)
     g := GCD(r,s);
     if GCD(N, a-d) mod g eq 0 then
       alpha := CRT([a,d],[r,s]);
-      if (alpha ne 0) or (N eq 1) then
+      if (GCD(alpha,N) eq 1) then
         ret +:= EulerPhi(g);
       end if;
     end if;
@@ -263,10 +261,8 @@ function A2(n,N,k)
               D := (t^2-4*n) div f^2;
 	      if D mod 4 in [0,1] then
 		  O := QuadraticOrder(BinaryQuadraticForms(D));
-		  // h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
 		  h := #PicardGroup(O);
 		  w := #TorsionSubgroup(UnitGroup(O));
-		  // w := #UnitGroup(Integers(QuadraticField(D)));
 		  t_sum +:= (h/w) * mu(N,t,f,n);
 	      end if;
 	  end if;
@@ -372,10 +368,10 @@ function TraceFormulaGamma0HeckeAL(N, k, n, Q)
 	for u in Divisors(Q) do
 	    for u_prime in Divisors(Q_prime) do
 		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
-		    // print "u =", u, " u_prime = ", u_prime, "t = ", t;
+		    print "u =", u, " u_prime = ", u_prime, "t = ", t;
 		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*C(Q_prime,u_prime,t,Q*n)
 			   *MoebiusMu(u) / Q^(w div 2);
-		    // print "S1 = ", S1;
+		    print "S1 = ", S1;
 		end if;
 	    end for;
 	end for;
