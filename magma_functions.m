@@ -35,7 +35,7 @@ end function;
 function S(N, u, t, n)
   assert N mod u eq 0;
   assert (t^2 - 4 * n) mod u^2 eq 0;
-  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod GCD(N*u, N^2) eq 0];
+  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod (N*u) eq 0];
 end function;
 
 function phi1(N)
@@ -60,14 +60,68 @@ function C(N, u, t, n)
   return &+[B(N, u div d, t, n) * MoebiusMu(d) : d in Divisors(u)];
 end function;
 
-// Popa does not mean this Hurwitz!!! Trying to change
+function Lemma4_5(N, u, D)
+    assert N mod u eq 0;
+    assert D mod (u^2) eq 0;
+    ret := 1;
+    fac := Factorization(N);
+    for pa in fac do
+	p, a := Explode(pa);
+	i := Valuation(u, p);
+	if (i eq 0) then continue; end if;
+	b := Valuation(D, p);
+	if IsOdd(p) then
+	    if (i eq a) then ret *:= p^(Ceiling(a/2)); continue; end if;
+	    if ((i le b-a) and IsEven(a-i)) then
+		ret *:= (p^Ceiling(i/2) - p^(Ceiling(i/2)-1));
+	    elif ((i eq b-a+1) and IsEven(a-i)) then
+		ret *:= - p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a+1) and IsOdd(a-i)) then
+		ret *:= p^Floor(i/2) * LegendreSymbol(D div p^b, p);
+	    else
+		return 0;
+	    end if;
+	else // p = 2
+	    if (i eq a) then
+		if (b ge 2*a+2) or ((b eq 2*a) and (((D div 2^b) mod 4) eq 1)) then 
+		    ret *:= p^(Ceiling(a/2));
+		elif (b eq 2*a+1) or ((b eq 2*a) and (((D div 2^b) mod 4) eq 3)) then
+		    ret *:= -p^(Ceiling(a/2)-1);
+		end if;
+		continue;
+	    end if;
+	    if ((i le b-a-2) and IsEven(a-i)) then
+		// print "case 1";
+		ret *:= p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a-1) and IsEven(a-i)) then
+		// print "case 2";
+		ret *:= - p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a) and IsEven(a-i)) then
+		// print "case 3";
+		ret *:= p^(Ceiling(i/2)-1) * KroneckerCharacter(-4)(D div p^b);
+	    elif ((i eq b-a+1) and IsOdd(a-i) and ((D div p^b) mod 4 eq 1) ) then
+		// print "case 4";
+		ret *:= p^Floor(i/2) * KroneckerSymbol(D div p^b, p);
+	    else
+		// print "returning 0";
+		return 0;
+	    end if;
+	end if;
+    end for;
+    return ret;
+end function;
+
+function Cfast(N, u, t, n)
+    S := [x : x in [0..N-1] | (GCD(x,N) eq 1) and (((x^2 - t*x + n) mod N) eq 0)];
+    return #S * Lemma4_5(N, u, t^2 - 4*n);
+end function;
+
 function Hurwitz(n)
     if n eq 0 then
 	return -1/12;
     end if;
     t_sum := 0;
     
-    /*
     for d in Divisors(n) do
 	is_sq, f := IsSquare(d);
 	if is_sq then
@@ -80,14 +134,6 @@ function Hurwitz(n)
 	    end if;
 	end if;
     end for;
-   */
-    D := -n;
-    if D mod 4 in [0,1] then
-	O := QuadraticOrder(BinaryQuadraticForms(D));
-	h := #PicardGroup(O);
-	w := #TorsionSubgroup(UnitGroup(O));
-	t_sum +:= (h/w);
-    end if;
     return 2*t_sum;
 end function;
 
@@ -103,7 +149,6 @@ function H(n)
     return 0;
   end if;
 
-//ret := &+[ClassNumber(BinaryQuadraticForms(-n div d)) : d in Divisors(n) | IsSquare(d) and (n div d) mod 4 in [0,3] ];
   ret := &+[ClassNumber(-n div d) : d in Divisors(n)
 		       | IsSquare(d) and (n div d) mod 4 in [0,3] ];
   if IsSquare(n) and IsEven(n) then
@@ -165,7 +210,6 @@ function S2Popa(n,N,k)
     return S2;
 end function;
 
-// At the moment, this seems to work when N is prime
 function TraceFormulaGamma0(n, N, k)
     S1 := S1Popa(n,N,k);
     S2 := S2Popa(n,N,k);
@@ -412,7 +456,7 @@ function TraceFormulaGamma0HeckeAL(N, k, n, Q)
 	    for u_prime in Divisors(Q_prime) do
 		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
 		    // print "u =", u, " u_prime = ", u_prime, "t = ", t;
-		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*C(Q_prime,u_prime,t,Q*n)
+		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*Cfast(Q_prime,u_prime,t,Q*n)
 			   *MoebiusMu(u) / Q^(w div 2);
 		    // print "S1 = ", S1;
 		end if;
