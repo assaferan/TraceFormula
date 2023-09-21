@@ -35,7 +35,7 @@ end function;
 function S(N, u, t, n)
   assert N mod u eq 0;
   assert (t^2 - 4 * n) mod u^2 eq 0;
-  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
+  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod GCD(N*u, N^2) eq 0];
 end function;
 
 function phi1(N)
@@ -58,6 +58,37 @@ end function;
 
 function C(N, u, t, n)
   return &+[B(N, u div d, t, n) * MoebiusMu(d) : d in Divisors(u)];
+end function;
+
+// Popa does not mean this Hurwitz!!! Trying to change
+function Hurwitz(n)
+    if n eq 0 then
+	return -1/12;
+    end if;
+    t_sum := 0;
+    
+    /*
+    for d in Divisors(n) do
+	is_sq, f := IsSquare(d);
+	if is_sq then
+            D := -n div f^2;
+	    if D mod 4 in [0,1] then
+		O := QuadraticOrder(BinaryQuadraticForms(D));
+		h := #PicardGroup(O);
+		w := #TorsionSubgroup(UnitGroup(O));
+		t_sum +:= (h/w);
+	    end if;
+	end if;
+    end for;
+   */
+    D := -n;
+    if D mod 4 in [0,1] then
+	O := QuadraticOrder(BinaryQuadraticForms(D));
+	h := #PicardGroup(O);
+	w := #TorsionSubgroup(UnitGroup(O));
+	t_sum +:= (h/w);
+    end if;
+    return 2*t_sum;
 end function;
 
 function H(n)
@@ -106,30 +137,43 @@ function P(k, t, m)
   return Coefficient((1 - t*x+m*x^2)^(-1), k-2);
 end function;
 
+// This should yield -2*(A1 + A2)
+function S1Popa(n,N,k)
+    S1 := 0;
+    max_abst := Floor(SquareRoot(4*n));
+    for t in [-max_abst..max_abst] do
+	for u in Divisors(N) do
+	    if ((4*n-t^2) mod u^2 eq 0) then
+		// print "u = ", u, "t = ", t;
+		S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
+		// assert H((4*n-t^2) div u^2) eq Hurwitz((4*n-t^2) div u^2);
+		// S1 +:= P(k,t,n)*Hurwitz((4*n-t^2) div u^2)*C(N,u,t,n);
+		// print "S1 = ", S1;
+	    end if;
+	end for;
+    end for;
+    return S1;
+end function;
+
+// This should yield -2*A3
+function S2Popa(n,N,k)
+    S2 := 0;
+    for d in Divisors(n) do
+	a := n div d;
+	S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
+    end for;
+    return S2;
+end function;
+
 // At the moment, this seems to work when N is prime
 function TraceFormulaGamma0(n, N, k)
-  S1 := 0;
-  max_abst := Floor(SquareRoot(4*n));
-  for t in [-max_abst..max_abst] do
-    for u in Divisors(N) do
-	if ((4*n-t^2) mod u^2 eq 0) then
-	    // print "u = ", u, "t = ", t;
-	    S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
-	    // print "S1 = ", S1;
-      end if;
-    end for;
-  end for;
-  S2 := 0;
-  for d in Divisors(n) do
-    a := n div d;
-    S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
-  end for;
-  // print "S2 = ", S2;
-  ret := -S1 / 2 - S2 / 2;
-  if k eq 2 then
-     ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
-  end if;
-  return ret;
+    S1 := S1Popa(n,N,k);
+    S2 := S2Popa(n,N,k);
+    ret := -S1 / 2 - S2 / 2;
+    if k eq 2 then
+	ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
+    end if;
+    return ret;
 end function;
 
 function PhiAL(N, a, d)
@@ -242,7 +286,6 @@ function mu(N,t,f,n)
   return N_f * prod * s;
 end function;
 
-// This is not working yet. Probably due to class number issues.
 function A2(n,N,k)
   R<x> := PolynomialRing(Rationals());
   max_abst := Floor(SquareRoot(4*n));
@@ -368,10 +411,10 @@ function TraceFormulaGamma0HeckeAL(N, k, n, Q)
 	for u in Divisors(Q) do
 	    for u_prime in Divisors(Q_prime) do
 		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
-		    print "u =", u, " u_prime = ", u_prime, "t = ", t;
+		    // print "u =", u, " u_prime = ", u_prime, "t = ", t;
 		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*C(Q_prime,u_prime,t,Q*n)
 			   *MoebiusMu(u) / Q^(w div 2);
-		    print "S1 = ", S1;
+		    // print "S1 = ", S1;
 		end if;
 	    end for;
 	end for;
