@@ -489,3 +489,60 @@ function get_trace_hecke_AL(N, k, n, Q : New := false)
     T := HeckeOperator(C,n);
     return Trace(T*al);
 end function;
+
+function d_prime(d, N, Q, N_prime)
+    return GCD(d, N div Q) * GCD(N div (N_prime*d), Q);
+end function;
+
+function Q_prime(N, Q, N_prime)
+    return GCD(Q, N_prime);
+end function;
+
+function dd_prime(d, N, Q, N_prime, n)
+    d_p := d_prime(d, N, Q, N_prime);
+    if (GCD(d_p, n) * d) mod d_p ne 0 then
+	return 0;
+    end if;
+    return (GCD(d_p, n) * d) div d_p;
+end function;
+
+function n_prime(d, N, Q, N_prime, n)
+    d_p := d_prime(d, N, Q, N_prime);
+    dd_p := dd_prime(d, N, Q, N_prime, n) * GCD(d_p, n);
+    return n div dd_p;
+end function;
+
+function get_ds(N, Q, N_prime, n)
+    divs := Divisors(N div N_prime);
+    ret := [];
+    for d in divs do
+	d_p := d_prime(d, N, Q, N_prime);
+	dd_p := dd_prime(d, N, Q, N_prime, n);
+	if (dd_p eq 0) then
+	    continue;
+	end if;
+	if (GCD(dd_p, N_prime) eq 1) and (n mod (dd_p * GCD(d_p, n)) eq 0) then
+	    Append(~ret, d);
+	end if;
+    end for;
+    return ret;
+end function;
+
+procedure testRelationNewSubspacesGeneral(N, k, n, Q)
+    s := 0;
+    for N_prime in Divisors(N) do
+	ds := get_ds(N, Q, N_prime, n);
+	for d in ds do
+	    n_p := n_prime(d, N, Q, N_prime, n);
+	    d_p := d_prime(d, N, Q, N_prime);
+	    dd_p := dd_prime(d, N, Q, N_prime, n);
+	    Q_p := Q_prime(N, Q, N_prime);
+	    term := (n div n_p)^(k div 2 - 1);
+	    term *:= GCD(d_p, n);
+	    term *:= MoebiusMu(dd_p);
+	    term *:= get_trace_hecke_AL(N_prime, k, n_p, Q_p : New);
+	    s +:= term;
+	end for;
+    end for;
+    assert s eq get_trace_hecke_AL(N, k, n, Q);
+end procedure;
