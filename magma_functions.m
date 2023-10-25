@@ -546,3 +546,193 @@ procedure testRelationNewSubspacesGeneral(N, k, n, Q)
     end for;
     assert s eq get_trace_hecke_AL(N, k, n, Q);
 end procedure;
+
+procedure testBatchRelationNewSubspacesGeneral(Ns, ns, ks)
+    // printf "(N,k,n,Q)=";
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    // printf "(%o,%o,%o,%o),", N, k, n, Q;
+		    testRelationNewSubspacesGeneral(N,k,n,Q);
+		end for;
+	    end for;
+	end for;
+    end for;
+end procedure;
+
+function IsRelevantNprime(N_p, N, a, n_p, n)
+    if (GCD(N div N_p, n*a) ne n_p) then
+	return false;
+    end if;
+    if (((N div N_p) mod a) ne 0) then
+	return false;
+    end if;
+    if (GCD(N_p, a) ne 1) then
+	return false;
+    end if;
+    return IsSquare(N div (N_p * n_p));
+end function;
+
+procedure testRelationNewSubspaces2(N, k, n)
+    s := 0;
+    for n_p in Divisors(n) do
+	for a in Divisors(n_p) do
+	    N_primes := [N_p : N_p in Divisors(N) | IsRelevantNprime(N_p, N, a, n_p, n)];
+	    term := &+[Integers() | get_trace_hecke_AL(N_p, k, n div n_p, N_p : New) : N_p in N_primes];
+	    term *:= n_p^(k div 2) div a;
+	    term *:= MoebiusMu(a);
+	    s +:= term;
+	end for;
+    end for;
+    printf "\n";
+    assert s eq get_trace_hecke_AL(N, k, n, N);
+end procedure;
+
+procedure testBatchRelationNewSubspaces2(Ns, ns, ks)
+    printf "(N,n)=";
+    for N in Ns do
+	for n in ns do
+	    printf "(%o,%o),", N, n;
+	    for k in ks do
+		testRelationNewSubspaces2(N,k,n);
+	    end for;
+	end for;
+    end for;
+    printf "\n";
+end procedure;
+
+procedure testRelationNewSubspaces3(N, k, n, Q)
+    s := 0;
+    n_Q := GCD(n, Q);
+    n_NQ := n div n_Q;
+    n_p_NQs := [n_p_NQ : n_p_NQ in Divisors(n_NQ) | IsSquare(n_p_NQ)];
+    for n_p_Q in Divisors(n_Q) do
+	for a_Q in Divisors(n_p_Q) do
+	    for n_p_NQ in n_p_NQs do
+		n_p := n_p_Q * n_p_NQ;
+		_, a_NQ := IsSquare(n_p_NQ);
+		// print a_NQ;
+		a := a_Q * a_NQ;
+		Q_primes := [Q_p : Q_p in Divisors(Q) | IsRelevantNprime(Q_p, Q, a_Q, n_p_Q, n_Q)];
+		NQ_primes := [NQ_p : NQ_p in Divisors(N div Q) | (GCD(a_NQ, NQ_p) eq 1) and ((N div (Q*NQ_p)) mod a_NQ eq 0)];
+		N_primes := [Q_p * NQ_p : Q_p in Q_primes, NQ_p in NQ_primes];
+		// print N_primes;
+		weights := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq 1] : N_p in N_primes];
+		// print weights;
+		weights2 := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq a_NQ] : N_p in N_primes];
+		// print weights;
+		// These should be the same
+		assert weights eq weights2;
+		traces := [get_trace_hecke_AL(N_p, k, n div n_p, GCD(N_p, Q) : New) : N_p in N_primes];
+		// print traces;
+		term := &+[Integers() | weights[i]*traces[i] : i in [1..#N_primes]];
+		term *:= n_p^(k div 2) div a;
+		term *:= MoebiusMu(a);
+		s +:= term;
+	    end for;
+	end for;
+    end for;
+    assert s eq get_trace_hecke_AL(N, k, n, Q);
+end procedure;
+
+procedure testBatchRelationNewSubspaces3(Ns, ns, ks)
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    testRelationNewSubspaces3(N,k,n,Q);
+		end for;
+	    end for;
+	end for;
+    end for;
+    printf "\n";
+end procedure;
+
+function alpha(Q, n, m)
+    if m eq 1 then return 1; end if;
+    fac := Factorization(m);
+    if #fac gt 1 then
+	return &*[alpha(Q,n,pe[1]^pe[2]) : pe in fac];
+    end if;
+    p := fac[1][1];
+    e := fac[1][2];
+    if (e eq 2) and ((Q*n mod p) ne 0) then
+	return 1;
+    end if;
+    if (e eq 1) and ((Q*n mod p) ne 0) then
+	return -2;
+    end if;
+    if (e eq 2) and ((Q mod p) eq 0) and ((n mod p) ne 0) then
+	return -1;
+    end if;
+    if (e eq 1) and (n mod p eq 0) and (Q mod p ne 0) then
+	return -1;
+    end if;
+    return 0;
+end function;
+
+forward TraceFormulaGamma0HeckeALNew;
+
+function TraceFormulaGamma0HeckeALNewSmaller(N, k, n, Q)
+    trace := 0;
+    n_Q := GCD(n, Q);
+    n_NQ := n div n_Q;
+    n_p_NQs := [n_p_NQ : n_p_NQ in Divisors(n_NQ) | IsSquare(n_p_NQ)];
+    for n_p_Q in Divisors(n_Q) do
+	for d_Q in Divisors(n_p_Q) do
+	    for n_p_NQ in n_p_NQs do
+		n_p := n_p_Q * n_p_NQ;
+		if (n_p eq 1) then
+		    continue;
+		end if;
+		_, d_NQ := IsSquare(n_p_NQ);
+		d := d_Q * d_NQ;
+		Q_primes := [Q_p : Q_p in Divisors(Q) | IsRelevantNprime(Q_p, Q, d_Q, n_p_Q, n_Q)];
+		NQ_primes := [NQ_p : NQ_p in Divisors(N div Q) | (GCD(d_NQ, NQ_p) eq 1) and ((N div (Q*NQ_p)) mod d_NQ eq 0)];
+		N_primes := [Q_p * NQ_p : Q_p in Q_primes, NQ_p in NQ_primes];
+		weights := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq 1] : N_p in N_primes];
+		traces := [TraceFormulaGamma0HeckeALNew(N_p, k, n div n_p, GCD(N_p, Q)) : N_p in N_primes];
+		term := &+[Integers() | weights[i]*traces[i] : i in [1..#N_primes]];
+		term *:= n_p^(k div 2) div d;
+		term *:= MoebiusMu(d);
+		trace +:= term;
+	    end for;
+	end for;
+    end for;
+    return trace;
+end function;
+
+function TraceFormulaGamma0HeckeALNew(N, k, n, Q)
+    trace := 0;
+    for N_prime in Divisors(N) do
+	a := alpha(Q, n, N div N_prime);
+	Q_prime := GCD(N_prime, Q);
+	term := TraceFormulaGamma0HeckeAL(N_prime, k, n, Q_prime);
+	term -:= TraceFormulaGamma0HeckeALNewSmaller(N_prime, k, n, Q_prime);
+	trace +:= a*term;
+    end for;
+    return trace;
+end function;
+
+procedure testBatchTraceFormulaGamma0HeckeALNew(Ns, ns, ks)
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    assert TraceFormulaGamma0HeckeALNew(N,k,n,Q) eq get_trace_hecke_AL(N,k,n,Q : New);
+		end for;
+	    end for;
+	end for;
+    end for;
+    printf "\n";
+end procedure;
