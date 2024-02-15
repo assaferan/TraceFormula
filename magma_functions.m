@@ -19,8 +19,6 @@ function Sfast(N, u, t, n)
           return 0;
         end if;
 	y_0 := y div p^e_y;
-// compare timings
-// is_sq := KroneckerSymbol(y_0,p);
         is_sq := IsSquare(Integers(p)!y_0);
         if not is_sq then
 	  return 0;
@@ -37,7 +35,7 @@ end function;
 function S(N, u, t, n)
   assert N mod u eq 0;
   assert (t^2 - 4 * n) mod u^2 eq 0;
-  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod N*u eq 0];
+  return [x : x in [0..N-1] | GCD(x,N) eq 1 and (x^2 - t*x + n) mod (N*u) eq 0];
 end function;
 
 function phi1(N)
@@ -48,8 +46,8 @@ end function;
 
 function B(N, u, t, n)
 // assert Sfast(N,u,t,n) eq #S(N,u,t,n);
-//return #S(N,u,t,n) * phi1(N) div phi1(N div u);
-  return Sfast(N,u,t,n) * phi1(N) div phi1(N div u);  
+    return #S(N,u,t,n) * phi1(N) div phi1(N div u);
+  // return Sfast(N,u,t,n) * phi1(N) div phi1(N div u);  
 end function;
 
 function C(N, M)
@@ -60,6 +58,83 @@ end function;
 
 function C(N, u, t, n)
   return &+[B(N, u div d, t, n) * MoebiusMu(d) : d in Divisors(u)];
+end function;
+
+function Lemma4_5(N, u, D)
+    assert N mod u eq 0;
+    assert D mod (u^2) eq 0;
+    ret := 1;
+    fac := Factorization(N);
+    for pa in fac do
+	p, a := Explode(pa);
+	i := Valuation(u, p);
+	if (i eq 0) then continue; end if;
+	b := Valuation(D, p);
+	if IsOdd(p) then
+	    if (i eq a) then ret *:= p^(Ceiling(a/2)); continue; end if;
+	    if ((i le b-a) and IsEven(a-i)) then
+		ret *:= (p^Ceiling(i/2) - p^(Ceiling(i/2)-1));
+	    elif ((i eq b-a+1) and IsEven(a-i)) then
+		ret *:= - p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a+1) and IsOdd(a-i)) then
+		ret *:= p^Floor(i/2) * LegendreSymbol(D div p^b, p);
+	    else
+		return 0;
+	    end if;
+	else // p = 2
+	    if (i eq a) then
+		if (b ge 2*a+2) or ((b eq 2*a) and (((D div 2^b) mod 4) eq 1)) then 
+		    ret *:= p^(Ceiling(a/2));
+		elif (b eq 2*a+1) or ((b eq 2*a) and (((D div 2^b) mod 4) eq 3)) then
+		    ret *:= -p^(Ceiling(a/2)-1);
+		end if;
+		continue;
+	    end if;
+	    if ((i le b-a-2) and IsEven(a-i)) then
+		// print "case 1";
+		ret *:= p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a-1) and IsEven(a-i)) then
+		// print "case 2";
+		ret *:= - p^(Ceiling(i/2)-1);
+	    elif ((i eq b-a) and IsEven(a-i)) then
+		// print "case 3";
+		ret *:= p^(Ceiling(i/2)-1) * KroneckerCharacter(-4)(D div p^b);
+	    elif ((i eq b-a+1) and IsOdd(a-i) and ((D div p^b) mod 4 eq 1) ) then
+		// print "case 4";
+		ret *:= p^Floor(i/2) * KroneckerSymbol(D div p^b, p);
+	    else
+		// print "returning 0";
+		return 0;
+	    end if;
+	end if;
+    end for;
+    return ret;
+end function;
+
+function Cfast(N, u, t, n)
+    S := [x : x in [0..N-1] | (GCD(x,N) eq 1) and (((x^2 - t*x + n) mod N) eq 0)];
+    return #S * Lemma4_5(N, u, t^2 - 4*n);
+end function;
+
+function Hurwitz(n)
+    if n eq 0 then
+	return -1/12;
+    end if;
+    t_sum := 0;
+    
+    for d in Divisors(n) do
+	is_sq, f := IsSquare(d);
+	if is_sq then
+            D := -n div f^2;
+	    if D mod 4 in [0,1] then
+		O := QuadraticOrder(BinaryQuadraticForms(D));
+		h := #PicardGroup(O);
+		w := #TorsionSubgroup(UnitGroup(O));
+		t_sum +:= (h/w);
+	    end if;
+	end if;
+    end for;
+    return 2*t_sum;
 end function;
 
 function H(n)
@@ -74,7 +149,6 @@ function H(n)
     return 0;
   end if;
 
-//ret := &+[ClassNumber(BinaryQuadraticForms(-n div d)) : d in Divisors(n) | IsSquare(d) and (n div d) mod 4 in [0,3] ];
   ret := &+[ClassNumber(-n div d) : d in Divisors(n)
 		       | IsSquare(d) and (n div d) mod 4 in [0,3] ];
   if IsSquare(n) and IsEven(n) then
@@ -94,7 +168,7 @@ function Phi(N, a, d)
     g := GCD(r,s);
     if GCD(N, a-d) mod g eq 0 then
       alpha := CRT([a,d],[r,s]);
-      if (alpha ne 0) or (N eq 1) then
+      if (GCD(alpha,N) eq 1) then
         ret +:= EulerPhi(g);
       end if;
     end if;
@@ -108,31 +182,59 @@ function P(k, t, m)
   return Coefficient((1 - t*x+m*x^2)^(-1), k-2);
 end function;
 
-// At the moment, this seems to work when N is prime
-function TraceFormulaGamma0(n, N, k)
-  S1 := 0;
-  max_abst := Floor(SquareRoot(4*n));
-  for t in [-max_abst..max_abst] do
-    for u in Divisors(N) do
-      if ((4*n-t^2) mod u^2 eq 0) then
-	S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
-      end if;
+// This should yield -2*(A1 + A2)
+function S1Popa(n,N,k)
+    S1 := 0;
+    max_abst := Floor(SquareRoot(4*n));
+    for t in [-max_abst..max_abst] do
+	for u in Divisors(N) do
+	    if ((4*n-t^2) mod u^2 eq 0) then
+		// print "u = ", u, "t = ", t;
+		S1 +:= P(k,t,n)*H((4*n-t^2) div u^2)*C(N,u,t,n);
+		// assert H((4*n-t^2) div u^2) eq Hurwitz((4*n-t^2) div u^2);
+		// S1 +:= P(k,t,n)*Hurwitz((4*n-t^2) div u^2)*C(N,u,t,n);
+		// print "S1 = ", S1;
+	    end if;
+	end for;
     end for;
-  end for;
-  S2 := 0;
-  for d in Divisors(n) do
-    a := n div d;
-    S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
-  end for;
-  ret := -S1 / 2 - S2 / 2;
-  if k eq 2 then
-     ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
-  end if;
-  return ret;
+    return S1;
+end function;
+
+// This should yield -2*A3
+function S2Popa(n,N,k)
+    S2 := 0;
+    for d in Divisors(n) do
+	a := n div d;
+	S2 +:= Minimum(a,d)^(k-1)*Phi(N,a,d);
+    end for;
+    return S2;
+end function;
+
+function TraceFormulaGamma0(n, N, k)
+    S1 := S1Popa(n,N,k);
+    S2 := S2Popa(n,N,k);
+    ret := -S1 / 2 - S2 / 2;
+    if k eq 2 then
+	ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
+    end if;
+    return ret;
 end function;
 
 function PhiAL(N, a, d)
   return EulerPhi(N) / N;
+end function;
+
+function Phil(N, l, a, d)
+    l_prime := N div l;
+    ret := 0;
+    for r in Divisors(l_prime) do
+	s := l_prime div r;
+	g := GCD(r,s);
+	if (((a-d) mod g eq 0) and (GCD(a,r) eq 1) and (GCD(d,s) eq 1)) then
+	    ret +:= EulerPhi(g);
+	end if;
+    end for;
+    return EulerPhi(l) * ret / l;
 end function;
 
 function alpha(n)
@@ -209,60 +311,75 @@ function TraceFormulaGamma0ALNew(p, N, k)
 end function;
 
 function A1(n,N,k)
-  if not IsSquare(n) then
+  if (not IsSquare(n)) or (GCD(n,N) ne 1) then
     return 0;
   end if;
   return n^(k div 2 - 1)*phi1(N)*(k-1)/12;
 end function;
 
+function phi1(N)
+    return N * &*[ Rationals() | 1 + 1/p : p in PrimeDivisors(N)];
+end function;
+
 function mu(N,t,f,n)
   N_f := GCD(N,f);
   primes := [x[1] : x in Factorization(N) | (N div N_f) mod x[1] ne 0];
-  s := #[x : x in [0..N-1] | (x^2 - t*x+n) mod (GCD(f*N, N^2)) eq 0];
+  s := #[x : x in [0..N-1] | (GCD(x,N) eq 1) and ((x^2 - t*x+n) mod (GCD(f*N, N^2)) eq 0)];
   prod := IsEmpty(primes) select 1 else &*[ 1 + 1/p : p in  primes];
+  assert N_f * prod eq (phi1(N) / phi1(N div GCD(N,f)));
   return N_f * prod * s;
 end function;
 
-// This is not working yet. Probably due to class number issues.
 function A2(n,N,k)
   R<x> := PolynomialRing(Rationals());
   max_abst := Floor(SquareRoot(4*n));
   if IsSquare(n) then max_abst -:= 1; end if;
   ret := 0;
   for t in [-max_abst..max_abst] do
-    F<rho> := NumberField(x^2 - t*x+n);
-    rho_bar := t - rho;
-    p := Rationals()!((rho^(k-1) - rho_bar^(k-1)) / (rho - rho_bar));
-    assert p eq P(k,t,n);
-    t_sum := 0;
-    for d in Divisors(4*n - t^2) do
-      is_sq, f := IsSquare(d);
-      if is_sq then
-        D := (t^2-4*n) div f^2;
-        h := (D mod 4 in [0,1]) select ClassNumber(D) else 0;
-        w := #UnitGroup(Integers(QuadraticField(D)));
-        t_sum +:= (h/w) * mu(N,t,f,n);
-      end if;
-    end for;
-    ret -:= p*t_sum;
+      // print "t = ", t;
+      F<rho> := NumberField(x^2 - t*x+n);
+      rho_bar := t - rho;
+      p := Rationals()!((rho^(k-1) - rho_bar^(k-1)) / (rho - rho_bar));
+      assert p eq P(k,t,n);
+      t_sum := 0;
+      for d in Divisors(4*n - t^2) do
+	  is_sq, f := IsSquare(d);
+	  if is_sq then
+              D := (t^2-4*n) div f^2;
+	      if D mod 4 in [0,1] then
+		  O := QuadraticOrder(BinaryQuadraticForms(D));
+		  h := #PicardGroup(O);
+		  w := #TorsionSubgroup(UnitGroup(O));
+		  t_sum +:= (h/w) * mu(N,t,f,n);
+	      end if;
+	  end if;
+      end for;
+      // print "t_sum = ", t_sum;
+      // print "p = ", p;
+      ret -:= p*t_sum;
+      // print "ret = ", ret;
   end for;
   return ret;
 end function;
 
 function A3(n,N,k)
   g := 1;
-  ds := [d : d in Divisors(N) | d^2 lt n];
+  ds := [d : d in Divisors(n) | d^2 lt n];
   ret := 0;
-  for d in ds do  
-    cs := [c : c in Divisors(N) |
-	     GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0];
-    ret -:= d^(k-1) * &+[EulerPhi(GCD(c, N div c)) : c in cs];
+  for d in ds do
+      // print "d = ", d;
+      cs := [c : c in Divisors(N) |
+	     (GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0)
+	    and (GCD(d mod c, c) eq 1) and (GCD((n div d) mod (N div c), (N div c)) eq 1)];
+      ret -:= d^(k-1) * &+[Integers() | EulerPhi(GCD(c, N div c)) : c in cs];
+      // print "ret = ", ret;
   end for;
   is_sq, d := IsSquare(n);
   if is_sq then
-    cs := [c : c in Divisors(N) |
-	     GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0];
-    ret -:= 1/2 * d^(k-1) * &+[EulerPhi(GCD(c, N div c)) : c in cs];
+      cs := [c : c in Divisors(N) |
+	     (GCD(N div g, n div d - d) mod GCD(c, N div c) eq 0)
+	     and (GCD(d mod c, c) eq 1) and (GCD((n div d) mod (N div c), (N div c)) eq 1)];
+      ret -:= 1/2 * d^(k-1) * &+[Integers() | EulerPhi(GCD(c, N div c)) : c in cs];
   end if;
   return ret;
 end function;
@@ -322,4 +439,300 @@ procedure testInverseRelationNewSubspaces(N, k, p)
     // N_primes := [d : d in Divisors(N) | IsSquare(N div d) and ((N div d) mod p ne 0)];
     trace := &+[Integers() | MoebiusMu(m)*(get_trace(N div m^2, k, p) - TrivialContribution(N div m^2, k, p)) : m in ms];
     assert trace eq get_trace(N, k, p : New);
+end procedure;
+
+// Formula from Popa
+function TraceFormulaGamma0HeckeAL(N, k, n, Q)
+    assert k ge 2;
+    if (n eq 0) then return 0; end if; // for compatibility with q-expansions
+    S1 := 0;
+    Q_prime := N div Q;
+    assert GCD(Q, Q_prime) eq 1;
+    w := k - 2;
+    max_abst := Floor(SquareRoot(4*Q*n)) div Q;
+    for tQ in [-max_abst..max_abst] do
+	t := tQ*Q;
+	for u in Divisors(Q) do
+	    for u_prime in Divisors(Q_prime) do
+		if ((4*n*Q-t^2) mod (u*u_prime)^2 eq 0) then
+		    // print "u =", u, " u_prime = ", u_prime, "t = ", t;
+		    S1 +:= P(k,t,Q*n)*H((4*Q*n-t^2) div (u*u_prime)^2)*Cfast(Q_prime,u_prime,t,Q*n)
+			   *MoebiusMu(u) / Q^(w div 2);
+		    // print "S1 = ", S1;
+		end if;
+	    end for;
+	end for;
+    end for;
+    S2 := 0;
+    for d in Divisors(n*Q) do
+	a := n*Q div d;
+	if (a+d) mod Q eq 0 then
+	    // print "a = ", a, "d = ", d;
+	    S2 +:= Minimum(a,d)^(k-1)*Phil(N,Q,a,d) / Q^(w div 2);
+	    // print "S2 = ", S2;
+	end if;
+    end for;
+    // print "S2 = ", S2;
+    ret := -S1 / 2 - S2 / 2;
+    if k eq 2 then
+	ret +:= &+[n div d : d in Divisors(n) | GCD(d,N) eq 1];
+    end if;
+    return ret;
+end function;
+
+function get_trace_hecke_AL(N, k, n, Q : New := false)
+    C := CuspidalSubspace(ModularSymbols(N,k,1));
+    if New then
+	C := NewSubspace(C);
+    end if;
+    al := AtkinLehner(C,Q);
+    T := HeckeOperator(C,n);
+    return Trace(T*al);
+end function;
+
+function d_prime(d, N, Q, N_prime)
+    return GCD(d, N div Q) * GCD(N div (N_prime*d), Q);
+end function;
+
+function Q_prime(N, Q, N_prime)
+    return GCD(Q, N_prime);
+end function;
+
+function dd_prime(d, N, Q, N_prime, n)
+    d_p := d_prime(d, N, Q, N_prime);
+    if (GCD(d_p, n) * d) mod d_p ne 0 then
+	return 0;
+    end if;
+    return (GCD(d_p, n) * d) div d_p;
+end function;
+
+function n_prime(d, N, Q, N_prime, n)
+    d_p := d_prime(d, N, Q, N_prime);
+    dd_p := dd_prime(d, N, Q, N_prime, n) * GCD(d_p, n);
+    return n div dd_p;
+end function;
+
+function get_ds(N, Q, N_prime, n)
+    divs := Divisors(N div N_prime);
+    ret := [];
+    for d in divs do
+	d_p := d_prime(d, N, Q, N_prime);
+	dd_p := dd_prime(d, N, Q, N_prime, n);
+	if (dd_p eq 0) then
+	    continue;
+	end if;
+	if (GCD(dd_p, N_prime) eq 1) and (n mod (dd_p * GCD(d_p, n)) eq 0) then
+	    Append(~ret, d);
+	end if;
+    end for;
+    return ret;
+end function;
+
+procedure testRelationNewSubspacesGeneral(N, k, n, Q)
+    s := 0;
+    for N_prime in Divisors(N) do
+	ds := get_ds(N, Q, N_prime, n);
+	for d in ds do
+	    n_p := n_prime(d, N, Q, N_prime, n);
+	    d_p := d_prime(d, N, Q, N_prime);
+	    dd_p := dd_prime(d, N, Q, N_prime, n);
+	    Q_p := Q_prime(N, Q, N_prime);
+	    term := (n div n_p)^(k div 2 - 1);
+	    term *:= GCD(d_p, n);
+	    term *:= MoebiusMu(dd_p);
+	    term *:= get_trace_hecke_AL(N_prime, k, n_p, Q_p : New);
+	    s +:= term;
+	end for;
+    end for;
+    assert s eq get_trace_hecke_AL(N, k, n, Q);
+end procedure;
+
+procedure testBatchRelationNewSubspacesGeneral(Ns, ns, ks)
+    // printf "(N,k,n,Q)=";
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    // printf "(%o,%o,%o,%o),", N, k, n, Q;
+		    testRelationNewSubspacesGeneral(N,k,n,Q);
+		end for;
+	    end for;
+	end for;
+    end for;
+end procedure;
+
+function IsRelevantNprime(N_p, N, a, n_p, n)
+    if (GCD(N div N_p, n*a) ne n_p) then
+	return false;
+    end if;
+    if (((N div N_p) mod a) ne 0) then
+	return false;
+    end if;
+    if (GCD(N_p, a) ne 1) then
+	return false;
+    end if;
+    return IsSquare(N div (N_p * n_p));
+end function;
+
+procedure testRelationNewSubspaces2(N, k, n)
+    s := 0;
+    for n_p in Divisors(n) do
+	for a in Divisors(n_p) do
+	    N_primes := [N_p : N_p in Divisors(N) | IsRelevantNprime(N_p, N, a, n_p, n)];
+	    term := &+[Integers() | get_trace_hecke_AL(N_p, k, n div n_p, N_p : New) : N_p in N_primes];
+	    term *:= n_p^(k div 2) div a;
+	    term *:= MoebiusMu(a);
+	    s +:= term;
+	end for;
+    end for;
+    printf "\n";
+    assert s eq get_trace_hecke_AL(N, k, n, N);
+end procedure;
+
+procedure testBatchRelationNewSubspaces2(Ns, ns, ks)
+    printf "(N,n)=";
+    for N in Ns do
+	for n in ns do
+	    printf "(%o,%o),", N, n;
+	    for k in ks do
+		testRelationNewSubspaces2(N,k,n);
+	    end for;
+	end for;
+    end for;
+    printf "\n";
+end procedure;
+
+procedure testRelationNewSubspaces3(N, k, n, Q)
+    s := 0;
+    n_Q := GCD(n, Q);
+    n_NQ := n div n_Q;
+    n_p_NQs := [n_p_NQ : n_p_NQ in Divisors(n_NQ) | IsSquare(n_p_NQ)];
+    for n_p_Q in Divisors(n_Q) do
+	for a_Q in Divisors(n_p_Q) do
+	    for n_p_NQ in n_p_NQs do
+		n_p := n_p_Q * n_p_NQ;
+		_, a_NQ := IsSquare(n_p_NQ);
+		// print a_NQ;
+		a := a_Q * a_NQ;
+		Q_primes := [Q_p : Q_p in Divisors(Q) | IsRelevantNprime(Q_p, Q, a_Q, n_p_Q, n_Q)];
+		NQ_primes := [NQ_p : NQ_p in Divisors(N div Q) | (GCD(a_NQ, NQ_p) eq 1) and ((N div (Q*NQ_p)) mod a_NQ eq 0)];
+		N_primes := [Q_p * NQ_p : Q_p in Q_primes, NQ_p in NQ_primes];
+		// print N_primes;
+		weights := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq 1] : N_p in N_primes];
+		// print weights;
+		weights2 := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq a_NQ] : N_p in N_primes];
+		// print weights;
+		// These should be the same
+		assert weights eq weights2;
+		traces := [get_trace_hecke_AL(N_p, k, n div n_p, GCD(N_p, Q) : New) : N_p in N_primes];
+		// print traces;
+		term := &+[Integers() | weights[i]*traces[i] : i in [1..#N_primes]];
+		term *:= n_p^(k div 2) div a;
+		term *:= MoebiusMu(a);
+		s +:= term;
+	    end for;
+	end for;
+    end for;
+    assert s eq get_trace_hecke_AL(N, k, n, Q);
+end procedure;
+
+procedure testBatchRelationNewSubspaces3(Ns, ns, ks)
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    testRelationNewSubspaces3(N,k,n,Q);
+		end for;
+	    end for;
+	end for;
+    end for;
+    printf "\n";
+end procedure;
+
+function alpha(Q, n, m)
+    if m eq 1 then return 1; end if;
+    fac := Factorization(m);
+    if #fac gt 1 then
+	return &*[alpha(Q,n,pe[1]^pe[2]) : pe in fac];
+    end if;
+    p := fac[1][1];
+    e := fac[1][2];
+    if (e eq 2) and ((Q*n mod p) ne 0) then
+	return 1;
+    end if;
+    if (e eq 1) and ((Q*n mod p) ne 0) then
+	return -2;
+    end if;
+    if (e eq 2) and ((Q mod p) eq 0) and ((n mod p) ne 0) then
+	return -1;
+    end if;
+    if (e eq 1) and (n mod p eq 0) and (Q mod p ne 0) then
+	return -1;
+    end if;
+    return 0;
+end function;
+
+forward TraceFormulaGamma0HeckeALNew;
+
+function TraceFormulaGamma0HeckeALNewSmaller(N, k, n, Q)
+    trace := 0;
+    n_Q := GCD(n, Q);
+    n_NQ := n div n_Q;
+    n_p_NQs := [n_p_NQ : n_p_NQ in Divisors(n_NQ) | IsSquare(n_p_NQ)];
+    for n_p_Q in Divisors(n_Q) do
+	for d_Q in Divisors(n_p_Q) do
+	    for n_p_NQ in n_p_NQs do
+		n_p := n_p_Q * n_p_NQ;
+		if (n_p eq 1) then
+		    continue;
+		end if;
+		_, d_NQ := IsSquare(n_p_NQ);
+		d := d_Q * d_NQ;
+		Q_primes := [Q_p : Q_p in Divisors(Q) | IsRelevantNprime(Q_p, Q, d_Q, n_p_Q, n_Q)];
+		NQ_primes := [NQ_p : NQ_p in Divisors(N div Q) | (GCD(d_NQ, NQ_p) eq 1) and ((N div (Q*NQ_p)) mod d_NQ eq 0)];
+		N_primes := [Q_p * NQ_p : Q_p in Q_primes, NQ_p in NQ_primes];
+		weights := [#[x : x in Divisors(GCD(N div Q, N div N_p)) | GCD(x,n) eq 1] : N_p in N_primes];
+		traces := [TraceFormulaGamma0HeckeALNew(N_p, k, n div n_p, GCD(N_p, Q)) : N_p in N_primes];
+		term := &+[Integers() | weights[i]*traces[i] : i in [1..#N_primes]];
+		term *:= n_p^(k div 2) div d;
+		term *:= MoebiusMu(d);
+		trace +:= term;
+	    end for;
+	end for;
+    end for;
+    return trace;
+end function;
+
+function TraceFormulaGamma0HeckeALNew(N, k, n, Q)
+    trace := 0;
+    for N_prime in Divisors(N) do
+	a := alpha(Q, n, N div N_prime);
+	Q_prime := GCD(N_prime, Q);
+	term := TraceFormulaGamma0HeckeAL(N_prime, k, n, Q_prime);
+	term -:= TraceFormulaGamma0HeckeALNewSmaller(N_prime, k, n, Q_prime);
+	trace +:= a*term;
+    end for;
+    return trace;
+end function;
+
+procedure testBatchTraceFormulaGamma0HeckeALNew(Ns, ns, ks)
+    printf "(N,n,Q)=";
+    for N in Ns do
+	Qs := [Q : Q in Divisors(N) | GCD(Q, N div Q) eq 1];
+	for Q in Qs do
+	    for n in ns do
+		printf "(%o,%o,%o),", N, n, Q;
+		for k in ks do
+		    assert TraceFormulaGamma0HeckeALNew(N,k,n,Q) eq get_trace_hecke_AL(N,k,n,Q : New);
+		end for;
+	    end for;
+	end for;
+    end for;
+    printf "\n";
 end procedure;
