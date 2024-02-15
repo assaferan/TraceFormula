@@ -52,21 +52,21 @@ The executable is src/traceALbatch_dyn.
 There is also a static version of the code named src/traceALbatch_sta.
 It runs with command-line arguments as follows
 
-src/traceAL_dyn <from> <to> <weight> (<num_traces>) (<only_primes>) (<new>)
+src/traceALbatch_dyn [from] [to] [weight] ([num_traces]) ([only_primes]) ([new])
 
 where the  arguments are:
 
-<from> - The starting level for which to compute traces.
+[from] - The starting level for which to compute traces.
 
-<to> - The final level for which to compute traces.
+[to] - The final level for which to compute traces.
 
-<weight> k - the weight of modular forms to compute the trace for.
+[weight] k - the weight of modular forms to compute the trace for.
 
-<num_traces> The number of traces to compute. If not specified computes up to max(B, 30sqrt(p), 1000) where B is the Sturm bound.
+[num_traces] The number of traces to compute. If not specified computes up to max(B, 30sqrt(p), 1000) where B is the Sturm bound.
 
-<only_primes> Either 0 or 1. If specified as 1, only computes traces for Hecke operators at primes T_p.
+[only_primes] Either 0 or 1. If specified as 1, only computes traces for Hecke operators at primes T_p. Default is 0.
 
-<new> Either 0 or 1. If specified as 1 computes traces on spaces of newforms. 
+[new] Either 0 or 1. If specified as 1 computes traces on spaces of newforms. Default is 0.
 
 Output is written to files in the subfolder data with names traces_k_N.m where k is the weight and N is the level
     
